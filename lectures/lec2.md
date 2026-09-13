@@ -57,7 +57,7 @@ FastMCP - Designed to be fast mcp like fastapi
 
 MCP - gives us an extra layer of security, which could be a major reason for using it because mcp has an mcp token and we only expose that key to the agent while other api keys like aws/openai/github tokens remain in the mcp server and we dont expose them to the agent and this way it wont be able to push those tokens to github publicly and cant misuse them, hence its good to use it for security reason
 
-![Rest API v MCP diffs](assets/rest_v_mcp.png)
+![Rest API v MCP diffs](assets/lec2/rest_v_mcp.png)
 
 There's an official mcp registries, and also multiple mcp servers are present over web, can go through to understand how to code them, use them etc
 
@@ -70,7 +70,7 @@ Since these calls can be called parallely, it also reduces cost to some extent. 
 BFCL dataset
 - v4 has agentic and tool call robustness, format sensitivity and all etc
 
-![Tool Call Usage Evaluation](assets/tool_call_eval_stack.png)
+![Tool Call Usage Evaluation](assets/lec2/tool_call_eval_stack.png)
 
 Other things like
 - Efficiency: Latency, cost, calls of the model using tools. We want the agent to be cost effective and fast in addition to it being correct and accurate
