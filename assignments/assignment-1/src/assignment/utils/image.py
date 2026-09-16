@@ -1,7 +1,7 @@
-"""Build a task's testbed image on Modal from a local checkout.
+"""Build a task's testbed image with local Docker, from a local checkout.
 
 The repository under test is copied in from `task.source` — normally the
-`chess_app/` submodule — rather than cloned inside the build. That keeps the
+`chess_app/` checkout — rather than cloned inside the build. That keeps the
 build offline, works with a private repository without any credential, and
 avoids a network round trip on every rebuild.
 
@@ -14,19 +14,19 @@ already-fixed working tree would make a broken agent look like it passed.
 from __future__ import annotations
 
 import logging
+import shutil
 import subprocess
+import tempfile
 from pathlib import Path
 
-import modal
-
+from assignment.env import DOCKER, docker_version
 from assignment.task import Task
 
 logger = logging.getLogger(__name__)
 
 # Local caches, credentials, and git metadata never belong in the testbed. The
-# .git directory in particular is a gitlink file in a submodule checkout and
-# would be meaningless inside the container; the build makes a fresh repository
-# instead.
+# .git directory in particular would be meaningless inside the container; the
+# build makes a fresh repository instead.
 IGNORED_NAMES = {".git", ".venv", ".pytest_cache", "__pycache__", ".env", ".DS_Store"}
 
 class SourceMismatch(Exception):
@@ -57,9 +57,9 @@ def verify_source(task: Task, strict: bool = True) -> None:
             raise SourceMismatch(message)
         logger.warning("%s (continuing: strict=False)", message)
 
-    if not task.source.is_dir():
+    if not task.source.is_dir() or not any(task.source.iterdir()):
         raise SourceMismatch(
-            f"{task.source} does not exist. If it is a submodule, run `git submodule update --init`."
+            f"{task.source} is missing or empty. Run `make chess-app` to check it out."
         )
 
     head = _git(task.source, "rev-parse", "HEAD")
@@ -84,35 +84,65 @@ def verify_source(task: Task, strict: bool = True) -> None:
             "which silently invalidates the evaluation if one of them is the fix."
         )
 
-def build_testbed_image(task: Task, strict: bool = True, force_build: bool = False) -> modal.Image:
+def _context_filter(root: Path):
+    """A `shutil.copytree` ignore callback that applies `is_ignored`."""
+
+    def ignore(directory: str, names: list[str]) -> set[str]:
+        base = Path(directory)
+        return {name for name in names if is_ignored((base / name).relative_to(root))}
+
+    return ignore
+
+def _build(arguments: list[str], context: str, tag: str) -> None:
+    """Run one `docker build`, streaming its output so a slow build is visible."""
+    result = subprocess.run([*DOCKER, "build", "--tag", tag, *arguments, context])
+    if result.returncode != 0:
+        raise RuntimeError(f"Could not build {tag}. See the build output above.")
+
+def build_testbed_image(task: Task, strict: bool = True, force_build: bool = False) -> str:
     """Build the image holding the repository under test at its base commit.
 
     Args:
         task: The task whose Dockerfile and source checkout to build from.
         strict: Refuse to build when the checkout does not match the task's
             base commit. See `verify_source`.
-        force_build: Skip Modal's build cache.
+        force_build: Rebuild every layer instead of reusing Docker's cache.
 
     Returns:
-        A Modal image with the repository installed at /testbed.
+        The tag of an image with the repository installed at /testbed.
     """
     verify_source(task, strict=strict)
+    docker_version()
+
+    base_tag = f"assignment-testbed/{task.id}:base"
+    tag = f"assignment-testbed/{task.id}:latest"
+    cache = ["--no-cache"] if force_build else []
 
     logger.info("Building %s from %s at %s", task.id, task.source, task.base_commit[:12])
-    image = modal.Image.from_dockerfile(
-        str(task.dockerfile),
-        context_dir=str(task.source),
-        force_build=force_build,
-        ignore=is_ignored,
-    )
+    # The Dockerfile lives with the task and the context is the checkout, so the
+    # context is staged in a temporary directory: a .dockerignore would have to
+    # be written into the checkout, which `verify_source` would then reject as
+    # an uncommitted change.
+    with tempfile.TemporaryDirectory(prefix=f"{task.id}-context-") as staging:
+        context = Path(staging) / "context"
+        shutil.copytree(task.source, context, ignore=_context_filter(task.source))
+        _build(["--file", str(task.dockerfile), *cache], str(context), base_tag)
 
-    # Pin last, deliberately. Modal appends its own dependency install after the
-    # Dockerfile's commands on image builder versions <= 2024.10, and the 2023.12
-    # requirements file pins fastapi==0.88.0, which pulls starlette down to 0.22
-    # and breaks every test using TestClient. Chaining here puts this layer on
-    # top of that one, so the task's versions are the ones that survive.
-    if task.pins:
-        logger.info("Pinning %d packages on top of the built image", len(task.pins))
-        image = image.pip_install(*task.pins)
+    if not task.pins:
+        subprocess.run([*DOCKER, "tag", base_tag, tag], check=True)
+        return tag
 
-    return image
+    # Pin last, deliberately: the task's `pins` are a full freeze of a
+    # known-good resolution, and applying them as the final layer means a
+    # rebuild installs exactly what was tested, whatever the Dockerfile's own
+    # dependency resolution produced.
+    logger.info("Pinning %d packages on top of the built image", len(task.pins))
+    with tempfile.TemporaryDirectory(prefix=f"{task.id}-pins-") as staging:
+        pins = Path(staging) / "Dockerfile"
+        pins.write_text(
+            f"FROM {base_tag}\n"
+            f"RUN pip install --no-cache-dir {' '.join(task.pins)}\n"
+        )
+        _build(["--file", str(pins), *cache], staging, tag)
+
+    return tag

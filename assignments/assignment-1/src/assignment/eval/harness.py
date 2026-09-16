@@ -285,7 +285,7 @@ def resolve_image(spec, task: Task | None, strict: bool):
         strict: Passed to the build; refuses a checkout off the base commit.
 
     Returns:
-        A published image name, or a `modal.Image` built from the task.
+        A published image name, or the tag of an image built from the task.
 
     Raises:
         ValueError: If no image is published and no task was given to build.

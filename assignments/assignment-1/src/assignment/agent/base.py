@@ -26,6 +26,7 @@ logger = logging.getLogger(__name__)
 DEFAULT_COMPACTION_KEEP_RECENT_STEPS = 1
 DEFAULT_COMPACTION_MAX_TOKENS = 1_200
 MAX_OBSERVATION_CHARS = 10_000
+DEFAULT_REASONING_EFFORT = "medium"
 
 # TODO(Part 2): Write instructions that make the model produce concise working
 # memory for a software agent. The prompt should preserve concrete progress,
@@ -35,6 +36,20 @@ COMPACTION_SYSTEM_PROMPT = ""
 
 class StepLimitError(Exception):
     """Raised when an agent exhausts its model-call budget."""
+
+
+def reasoning_effort() -> str:
+    """How hard the model should think, from ``OPENAI_REASONING_EFFORT``.
+
+    Providers disagree about this parameter. OpenAI's own GPT-5.6 models reject
+    chat completions that combine function tools with any effort other than
+    ``none``, and a model with no reasoning mode at all rejects the parameter
+    outright. Set the variable to an empty string to leave it off the request.
+
+    Returns:
+        The effort to send, or the empty string to omit the parameter.
+    """
+    return os.environ.get("OPENAI_REASONING_EFFORT", DEFAULT_REASONING_EFFORT).strip()
 
 
 def format_tool_output(output: dict[str, Any]) -> str:
@@ -101,6 +116,10 @@ class Agent:
             api_key=api_key,
             base_url=base_url,
             max_retries=max_retries,
+        )
+        effort = reasoning_effort()
+        self.inference_options: dict[str, Any] = (
+            {"reasoning_effort": effort} if effort else {}
         )
 
         self.logs_save_path = logs_save_path
@@ -181,8 +200,8 @@ class Agent:
                 model=self.model,
                 messages=messages,
                 tools=self.tools,
-                reasoning_effort="medium",
                 max_completion_tokens=4096,
+                **self.inference_options,
             )
         except Exception as exc:
             print(
@@ -273,8 +292,8 @@ class Agent:
         compaction_response = self.client.chat.completions.create(
             model=self.model,
             messages=compaction_prompt,
-            reasoning_effort="medium",
             max_completion_tokens=self.compaction_max_tokens,
+            **self.inference_options,
         )
         ##################################
 
@@ -320,7 +339,7 @@ class Agent:
         return True
 
     def run(self) -> None:
-        """Run ReAct steps, always saving the trajectory and stopping Modal."""
+        """Run ReAct steps, always saving the trajectory and stopping the sandbox."""
 
         try:
             # TODO(1.2) Run the ReAct loop. Orchestrate the sequence of

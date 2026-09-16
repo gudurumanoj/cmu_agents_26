@@ -1,26 +1,40 @@
 """Fast checks for setup helpers that must work before student TODOs."""
 
-from assignment.env import _tls_port_configuration
+from pathlib import Path
+
+import pytest
+
+from assignment.env import environment_arguments, publish_port_arguments
+from assignment.utils.image import is_ignored
 
 
-def test_runtime_port_uses_tls_and_is_not_duplicated():
-    encrypted, unencrypted, extra = _tls_port_configuration(
-        {
-            "encrypted_ports": [8000, 9000],
-            "unencrypted_ports": [7000, 8000],
-            "cpu": 2,
-        },
-        8000,
-    )
-
-    assert encrypted == [8000, 9000]
-    assert unencrypted == [7000]
-    assert extra == {"cpu": 2}
+def test_each_port_is_published_on_loopback_once():
+    assert publish_port_arguments([8000, 9000, 8000]) == [
+        "-p",
+        "127.0.0.1::8000",
+        "-p",
+        "127.0.0.1::9000",
+    ]
 
 
-def test_runtime_port_is_added_when_no_port_lists_are_given():
-    encrypted, unencrypted, extra = _tls_port_configuration({}, 8000)
+def test_no_ports_means_no_flags():
+    assert publish_port_arguments([]) == []
 
-    assert encrypted == [8000]
-    assert unencrypted == []
-    assert extra == {}
+
+def test_an_out_of_range_port_is_rejected():
+    with pytest.raises(ValueError):
+        publish_port_arguments([70000])
+
+
+def test_environment_variables_become_exec_flags():
+    assert environment_arguments({"PATH": "/opt/bin:/usr/bin"}) == [
+        "-e",
+        "PATH=/opt/bin:/usr/bin",
+    ]
+
+
+def test_build_context_excludes_local_state():
+    assert is_ignored(Path(".git/config"))
+    assert is_ignored(Path("src/__pycache__/server.cpython-312.pyc"))
+    assert is_ignored(Path(".env"))
+    assert not is_ignored(Path("src/chess_app/server.py"))

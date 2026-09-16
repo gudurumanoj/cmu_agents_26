@@ -1,26 +1,35 @@
-"""Billable integration test for the chess server hosted in a Modal sandbox."""
+"""Integration test for the chess server hosted in a Docker sandbox."""
 
-import modal
+import subprocess
+
 import pytest
 
 from assignment.chess_sandbox import ChessSandbox, IllegalMove
+from assignment.env import DOCKER, SANDBOX_LABEL
+
+pytestmark = pytest.mark.docker
 
 
-pytestmark = pytest.mark.modal
+def sandbox_containers() -> list[str]:
+    """Container ids this assignment started and has not removed."""
+    listed = subprocess.run(
+        [*DOCKER, "ps", "--quiet", "--filter", f"label={SANDBOX_LABEL}"],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    return listed.stdout.split()
 
-def running_sandboxes(app: modal.App) -> list[modal.Sandbox]:
-    return [sandbox for sandbox in modal.Sandbox.list(app_id=app.app_id) if sandbox.poll() is None]
 
+def test_chess_app_is_playable_through_the_published_port():
+    before = set(sandbox_containers())
 
-def test_chess_app_is_playable_through_modal_tunnel():
-    app = modal.App.lookup("swe-rex", create_if_missing=True)
-    assert not running_sandboxes(app), "Another swe-rex sandbox is already running."
-
-    # This public test verifies the tunnel and API infrastructure without
-    # depending on the intentionally broken engine search. The private grader
-    # applies a candidate patch before exercising successful moves.
+    # This public test verifies the port publishing and API infrastructure
+    # without depending on the intentionally broken engine search. The private
+    # grader applies a candidate patch before exercising successful moves.
     with ChessSandbox() as sandbox:
-        assert len(running_sandboxes(app)) == 1
+        assert len(set(sandbox_containers()) - before) == 1
+        assert sandbox.server_url.startswith("http://127.0.0.1:")
 
         current = sandbox.state()
         assert current["turn"] == "white"
@@ -31,4 +40,4 @@ def test_chess_app_is_playable_through_modal_tunnel():
 
         assert sandbox.reset()["history"] == []
 
-    assert not running_sandboxes(app), "Chess sandbox was not terminated after the test."
+    assert set(sandbox_containers()) == before, "Chess sandbox was not removed after the test."

@@ -1,7 +1,7 @@
 """Tests for the agent loop.
 
 These use a scripted stand-in for the language model and a fake environment, so
-they run offline and launch no Modal sandbox.
+they run offline and start no container.
 
 The assertions look for content anywhere in the prompt rather than at fixed
 positions, so that any reasonable message layout passes.

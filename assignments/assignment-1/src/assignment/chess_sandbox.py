@@ -1,4 +1,4 @@
-"""Run the chess server in a Modal sandbox and play moves against it.
+"""Run the chess server in a Docker sandbox and play moves against it.
 
 This is the part 2 surface. It does not know anything about fixing the bug: it
 takes an optional patch (the fix produced in part 1), applies it to the
@@ -28,6 +28,8 @@ DEFAULT_TASK = Path(__file__).resolve().parents[2] / "tasks" / "chess-terminal-m
 class IllegalMove(Exception):
     """The server rejected a move as illegal or malformed."""
 
+ASSIGNMENT_DIR = "/opt/assignment"
+
 # The agent's own tool implementations, so a model-written snippet can run in
 # here against the local server instead of in the agent process.
 SANDBOX_FILES = (
@@ -36,19 +38,8 @@ SANDBOX_FILES = (
     Path(__file__).with_name("sandbox_python.py"),
 )
 
-def _with_assignment_files(image):
-    """Copy the files the sandbox runs into /opt/assignment."""
-
-    for source in SANDBOX_FILES:
-        image = image.add_local_file(
-            str(source),
-            f"/opt/assignment/{source.name}",
-            copy=True,  # SWE-ReX adds its runtime build layer afterwards.
-        )
-    return image
-
 class ChessSandbox(Environment):
-    """A chess server hosted in an isolated Modal sandbox.
+    """A chess server hosted in an isolated Docker container.
 
     Built from the same testbed image the evaluation harness uses, so the code
     under test and the code being played are identical. Without a patch the
@@ -74,10 +65,11 @@ class ChessSandbox(Environment):
                 `Task`. Defaults to the chess task.
             patch: A unified diff applied to the testbed before the server
                 starts, normally the fix from part 1.
-            port: Port to serve on, forwarded through an encrypted tunnel.
+            port: Port to serve on inside the container, published to an
+                arbitrary free port on localhost.
             strict: Refuse to build when the local checkout does not match the
                 task's base commit.
-            startup_timeout: Seconds to wait for the SWE-ReX runtime.
+            startup_timeout: Seconds to wait for the container to come up.
             runtime_timeout: Seconds a single command may run.
             deployment_timeout: Seconds the sandbox may stay alive.
             server_timeout: Seconds to wait for `/health` to succeed.
@@ -91,14 +83,15 @@ class ChessSandbox(Environment):
         self._client: httpx.Client | None = None
 
         super().__init__(
-            image=_with_assignment_files(build_testbed_image(self.task, strict=strict)),
+            image=build_testbed_image(self.task, strict=strict),
             startup_timeout=startup_timeout,
             runtime_timeout=runtime_timeout,
             deployment_timeout=deployment_timeout,
-            modal_sandbox_kwargs={"encrypted_ports": [port]},
+            ports=[port],
         )
 
         try:
+            self._install_assignment_files()
             if patch is not None:
                 self._apply_patch(patch)
             self.server_url = self.tunnel_url(port).rstrip("/")
@@ -107,6 +100,11 @@ class ChessSandbox(Environment):
         except Exception:
             self.stop()
             raise
+
+    def _install_assignment_files(self) -> None:
+        """Put the server and the tool implementations where the sandbox runs them."""
+        for source in SANDBOX_FILES:
+            self.copy_in(source, f"{ASSIGNMENT_DIR}/{source.name}")
 
     def _apply_patch(self, patch: str | Path) -> None:
         """Apply the part 1 fix to the testbed before serving it."""
@@ -208,14 +206,14 @@ def main() -> None:
     """Launch a chess sandbox and keep it alive until the user exits."""
     import argparse
 
-    parser = argparse.ArgumentParser(description="Serve the chess app from a Modal sandbox")
+    parser = argparse.ArgumentParser(description="Serve the chess app from a Docker sandbox")
     parser.add_argument("--patch", type=Path, help="Fix to apply before serving, e.g. the part 1 output")
     parser.add_argument("--task", type=Path, help="Task directory to serve the testbed of")
     parser.add_argument(
         "--sandbox-timeout",
         type=int,
         default=1800,
-        help="maximum lifetime of the Modal sandbox in seconds",
+        help="maximum lifetime of the sandbox container in seconds",
     )
     args = parser.parse_args()
 

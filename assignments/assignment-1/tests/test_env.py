@@ -1,50 +1,52 @@
-"""Tests for the Modal sandbox environment.
+"""Tests for the Docker sandbox environment.
 
-These spin up real Modal sandboxes, so they are slow and billable.
-Run with `pytest -m modal`.
+These start real containers, so they are slow and need a reachable Docker
+daemon. Run with `pytest -m docker`.
 """
 
-import modal
+import subprocess
+
 import pytest
 
-from assignment.env import Environment
+from assignment.env import DOCKER, SANDBOX_LABEL, Environment
 
-pytestmark = pytest.mark.modal
+pytestmark = pytest.mark.docker
+
+IMAGE = "python:3.12-slim"
 
 
-def running_sandboxes(app: modal.App) -> list[modal.Sandbox]:
-    """Sandboxes still alive on `app`. poll() returns None while a sandbox runs."""
-    return [sb for sb in modal.Sandbox.list(app_id=app.app_id) if sb.poll() is None]
+def sandbox_containers() -> list[str]:
+    """Container ids this assignment started and has not removed."""
+    listed = subprocess.run(
+        [*DOCKER, "ps", "--quiet", "--filter", f"label={SANDBOX_LABEL}"],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    return listed.stdout.split()
 
 
 @pytest.fixture(scope="module")
 def env():
-    """One sandbox shared by every test in this module.
+    """One container shared by every test in this module.
 
     The assertions here are part of the test surface: they check that the
     sandbox is launched and torn down cleanly, and are reported as errors at
     setup/teardown of whichever test is running.
     """
-    # SWE-ReX hardcodes the Modal app name, so we can look up the app it will use
-    # and confirm nothing is already running on it.
-    app = modal.App.lookup("swe-rex", create_if_missing=True)
-    assert not running_sandboxes(app), (
-        "Active sandbox found on the `swe-rex` modal.App. If there are sandboxes "
-        "running from other projects, this test will fail."
-    )
+    before = set(sandbox_containers())
 
-    env = Environment()
-    assert len(running_sandboxes(app)) == 1, (
-        "Launched one sandbox for swe-rex but more than one running sandbox found. "
-        "Something has gone wrong."
+    env = Environment(image=IMAGE)
+    assert set(sandbox_containers()) - before == {env.container_id[:12]}, (
+        "Launching one sandbox should leave exactly one new labelled container."
     )
 
     yield env
 
     env.stop()
-    assert not running_sandboxes(app), (
-        "Sandbox launched by test was terminated but a running sandbox was still "
-        "found. Something has gone wrong."
+    assert set(sandbox_containers()) == before, (
+        "The sandbox was stopped but its container is still running. "
+        "Run `make clean-sandboxes`."
     )
 
 
@@ -78,3 +80,16 @@ def test_failing_command(env):
     )
     # Streams are merged, so the traceback lands in output alongside stdout.
     assert "test exception" in output["output"], "the traceback should be in the output"
+
+
+def test_platform_is_read_from_inside_the_container(env):
+    """The system information the agent is told about describes the sandbox."""
+    assert env.system == "Linux"
+    assert env.machine
+
+
+def test_working_directory_and_environment_apply(env):
+    """A per-call cwd and env reach the command."""
+    output = env.execute("pwd; echo $ASSIGNMENT_MARKER", cwd="/tmp", env={"ASSIGNMENT_MARKER": "set"})
+    assert output["returncode"] == 0
+    assert output["output"].split() == ["/tmp", "set"]

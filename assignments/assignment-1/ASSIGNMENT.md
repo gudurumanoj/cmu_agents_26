@@ -22,57 +22,66 @@ buggy chess app -> CodeAgent -> fix.patch -> repaired chess server
 
 ## Setup
 
-Install [uv](https://docs.astral.sh/uv/), then run:
+You need [uv](https://docs.astral.sh/uv/) and a working [Docker](https://docs.docker.com/engine/install/) installation. Check that your user can reach the Docker daemon before going any further:
+```bash
+docker run --rm hello-world
+```
+If that fails with a permission error on `/var/run/docker.sock`, add yourself to the `docker` group (`sudo usermod -aG docker $USER`, then log out and back in) or use a [rootless Docker](https://docs.docker.com/engine/security/rootless/) installation. Running the assignment under `sudo` is not a workaround: the harness shells out to `docker` hundreds of times per agent run with no terminal attached, so a password prompt would hang it.
+
+`ASSIGNMENT_DOCKER` selects the CLI and is split like a shell command line, so a wrapper with its own arguments works too — `ASSIGNMENT_DOCKER=podman`, or `ASSIGNMENT_DOCKER="sudo -n docker"` on a host where a `NOPASSWD` sudoers rule is the only way in.
+
+Then run:
 ```bash
 make setup
 ```
-This will set up a Python environment (using `uv`), download and install relevant dependencies. This fails if either pinned `chess_app` source (for a task that your agent will work on) is missing or at the wrong commit.
+This will set up a Python environment (using `uv`), download and install relevant dependencies, and check out the pinned `chess_app` source (for a task that your agent will work on). This fails if that source is missing or at the wrong commit.
 
-This assignment will make use of [Modal](https://modal.com/), a cloud platform for running code. This platform will allow you to run code that your agent generates safely on a cloud machine. The environments where your agents will be on a remote Modal sandbox, and run code that executes agent actions. First, set up a Modal account (if you do not have one), and follow instructions that you will be sent to access compute credit on Modal. Then, run 
-```bash
-uv run modal setup
-```
-to sign in and set up Modal in your environment.
+If you cannot install `uv`, `make setup-pip` builds a plain virtualenv in `.venv` instead. Activate it with `source .venv/bin/activate` and add `RUN=` to every other target, for example `make test RUN=`, so they call the activated interpreter rather than `uv run`.
 
+Your agents run the code they generate inside a Docker container built from the task's testbed image, not on your machine. The container gets its own filesystem and process tree and is removed when the run ends, so an agent that deletes `/testbed` or installs something strange affects nothing outside it. Nothing here needs a cloud account.
 
-Once you have set up Modal, run 
+Next, run
 ```bash
 cp .env.example .env
 ```
-to create the file that contains your environment secrets – primarily LLM API details. You will receive instructions on how to access credits for an LLM provider if you are enrolled in the course. Follow the instructions to generate an API key, and ensure you configure the base URL for the service correctly.
+to create the file that contains your environment secrets – primarily LLM API details. Fill in an API key and the base URL for whichever OpenAI-compatible endpoint you are using.
 
 ```dotenv
-OPENAI_BASE_URL=<OpenAI-compatible base URL>
+OPENAI_BASE_URL=https://api.openai.com/v1
 OPENAI_API_KEY=...
-OPENAI_MODEL=deepseek/deepseek-v4-flash-0731
+OPENAI_MODEL=gpt-5.6-luna
+OPENAI_REASONING_EFFORT=none
 OPENAI_MAX_RETRIES=5
 ```
-By default, you will use the DeepSeek-V4-Flash model, as you can see above. When indicated, you should use another model. Feel free to explore other models from the same provider if credits permit, but we intend the assignment to be solved with this model.
 
-We will refer to any activity that will use API credits (from Modal, or the LLM provider) as _billable_. You will run billable evaluations throughout the assignment. We recommend monitoring your use on relevant dashboards to ensure you make good use of the API credits.
+`OPENAI_REASONING_EFFORT` controls the `reasoning_effort` parameter the harness sends. Leave it empty to omit the parameter entirely, which is what a model with no reasoning mode needs. OpenAI's own GPT-5.6 models (`gpt-5.6-luna`, `-terra`, `-sol`) reject `/v1/chat/completions` requests that combine function tools with any effort other than `none`, and every agent in this assignment calls tools, so `none` is the setting that works there. A provider serving open models over an OpenAI-compatible API will generally accept `medium`.
 
-Before a billable run, validate submodules, Modal authentication, and the model endpoint without starting a sandbox or generating tokens:
+We will refer to any activity that will use API credits from the LLM provider as _billable_. You will run billable evaluations throughout the assignment. We recommend monitoring your use on the provider's dashboard.
+
+Before a billable run, validate the pinned source, Docker, and the model endpoint without starting a container:
 ```bash
 make doctor
 ```
+This also makes one tiny tool-enabled request, which is the cheapest way to find out that your model and `reasoning_effort` combination is accepted. Skip it with `make doctor DOCTOR_ARGS=--no-probe`, or skip the network entirely with `make doctor DOCTOR_ARGS=--offline`.
 
-_(Optional)_ If you would like to test that all Modal components are running as intended, run
+_(Optional)_ If you would like to test that all sandbox components are running as intended, run
 ```bash
-make test-modal
-make test-chess-modal
+make test-docker
+make test-chess-docker
 ```
+Note that the first of these builds the testbed image, which takes a few minutes.
 
 As a general tip, you can use
 ```bash
-modal container list
+docker ps --filter label=assignment.sandbox=1
 ```
-to check that whether you have a billable Modal sandbox running. If the environment incorrectly shuts down, the sandbox may be left running and use up credits. You can use `modal container stop <container ID>` to stop a sandbox that was not correctly terminated.
+to check whether you have a sandbox container running. If a run crashes, the container may be left behind; `make clean-sandboxes` removes every container the assignment started.
 
 ## Public tests
 
 `make test` is fast, offline, and not billable. The starter intentionally fails tests for student TODOs. Use these milestones as a guide; exact pytest counts may change if clarifying tests are added.
 
-Passing public tests is not proof of full correctness. Private tests also cover cleanup on failure, duplicate/malformed skills, parallel chess calls, transport errors, artifact consistency, patch replay, and real Modal integration.
+Passing public tests is not proof of full correctness. Private tests also cover cleanup on failure, duplicate/malformed skills, parallel chess calls, transport errors, artifact consistency, patch replay, and real sandbox integration.
 
 ## Rules
 
@@ -123,7 +132,7 @@ Implement the body of `Agent.run`.
 
 ### 3. Execute coding tools
 
-Implement `CodeAgent.execute_tool_calls`. The coding agent supports two tools: `execute` and `send_message`. You can find the definitions of these tools [here](./src/assignment/agent/tools.py). You need to implement a mechanism for these tools to be executed, and prepare their outputs to be shown to the language model. These outputs are also messages of the form `{"role": str, "tool_call_id": str, "content": str}`. Each message is the observation of executing one of the tools, and is of a special role called `tool`.[^2] You should use the `Environment.execute` method to ensure you execute code on the correct Modal sandbox. You may leave the optional parameters to their current default values, but allow the agent to override them in its tool call.
+Implement `CodeAgent.execute_tool_calls`. The coding agent supports two tools: `execute` and `send_message`. You can find the definitions of these tools [here](./src/assignment/agent/tools.py). You need to implement a mechanism for these tools to be executed, and prepare their outputs to be shown to the language model. These outputs are also messages of the form `{"role": str, "tool_call_id": str, "content": str}`. Each message is the observation of executing one of the tools, and is of a special role called `tool`.[^2] You should use the `Environment.execute` method to ensure you execute code in the sandbox container rather than on your own machine. You may leave the optional parameters to their current default values, but allow the agent to override them in its tool call.
 
 > **TODO(1.3)**
 > Make the `execute` and `send_message` tools available to the agent. Parse each call, execute recognized tools, and return one message per call (there may be multiple tool calls in one agent response!). Malformed JSON and unknown tools must become recoverable observations relayed to the agent instead of exceptions.
@@ -164,7 +173,7 @@ make run-code-agent
 make check-part1
 ```
 
-The default model is `deepseek/deepseek-v4-flash-0731`. The agent receives `tasks/chess-terminal-move/problem_statement.md`, works inside `/testbed`, and must reproduce, fix, and verify the failure. A run produces:
+The model comes from `MODEL` in the Makefile, which defaults to `gpt-5.6-luna`; override it per run with `make run-code-agent MODEL=...`. The agent receives `tasks/chess-terminal-move/problem_statement.md`, works inside `/testbed`, and must reproduce, fix, and verify the failure. A run produces:
 
 - `artifacts/fix.patch`
 - `artifacts/part1-trajectory.json`
@@ -185,7 +194,9 @@ Long ReAct transcripts increase cost and eventually crowd out useful context. As
 > **TODO(2.2)**
 > Call `maybe_compact_context()` before each new action request in your shared loop. It already estimates active tokens and handles the threshold, and tracks compaction events for logging.
 
-Run the vendored `django__django-15368` task with a 6,000-token threshold:
+Run the vendored `django__django-15368` task with a 6,000-token threshold. The
+instance runs in its published SWE-bench image, which Docker pulls on first use;
+it is several gigabytes, so budget for that download before the first run.
 
 ```bash
 COMPACT_THRESHOLD=6000 \
@@ -243,20 +254,29 @@ This applies your `fix.patch`, launches the repaired server, and saves:
 - `artifacts/part3-trajectory.json`
 - `artifacts/game-result.json`
 
-The printed HTTPS URL serves the board and API. The board polls the live state
-while the agent plays; its button refreshes state without resetting the game.
-`CHESS_TIMEOUT=1800` controls the sandbox lifetime.
+The printed `http://127.0.0.1:<port>` URL serves the board and API. The
+container publishes its port to a free port on your machine, so open the URL
+exactly as printed rather than assuming a fixed number. The board polls the
+live state while the agent plays; its button refreshes state without resetting
+the game. `CHESS_TIMEOUT=1800` controls the sandbox lifetime, after which the
+container is removed.
 
 ### 2. Run the observation A/B experiment
 
 To see the effect of the tool interface on agent behavior, you will compare board-only observations with board plus legal moves for two models. The runners configure this without source edits and use distinct filenames:
 
 ```bash
-make run-obs-deepseek-no-legal
-make run-obs-deepseek-legal
-make run-obs-gpt-oss-no-legal
-make run-obs-gpt-oss-legal
+make run-obs-deepseek-no-legal DEEPSEEK_MODEL=<first model>
+make run-obs-deepseek-legal    DEEPSEEK_MODEL=<first model>
+make run-obs-gpt-oss-no-legal  GPT_OSS_MODEL=<second model>
+make run-obs-gpt-oss-legal     GPT_OSS_MODEL=<second model>
 ```
+
+The target names and the `deepseek`/`gpt-oss` artifact tags are fixed so the
+grader can find the files, but the two models are yours to choose: pick any two
+your endpoint serves, and say which ones you used in the report below. Both
+default to `MODEL`, so running the targets bare compares the same model against
+itself, which is not the comparison being asked for.
 
 For each of the four runs, record total `play_move` calls, calls rejected as
 illegal, invalid-move rate, and whether `game_over: true` was reached. Write a
@@ -383,4 +403,4 @@ credentials, `.env`, task files, tests, submodule contents, or instructor files.
 
 [^2]: A repeated `call_0` ID from a provider is valid: match each tool observation to the call in the same assistant action and do not assume IDs are globally unique across the trajectory.
 
-[^3]: `_play_move` and other tools are isolated in `chess_tools.py` to make executing these tools in a remote sandbox possible. Work within the structure of this code to correctly use the Modal sandbox for execution chess moves.
+[^3]: `_play_move` and other tools are isolated in `chess_tools.py` to make executing these tools inside the sandbox possible. Work within the structure of this code to correctly use the sandbox container for executing chess moves.
