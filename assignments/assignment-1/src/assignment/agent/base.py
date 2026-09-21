@@ -16,6 +16,7 @@ from typing import Any
 
 from dotenv import load_dotenv
 from openai import OpenAI
+import yaml
 
 from assignment.env import Environment
 from assignment.agent.tools import INVOKE_SKILL_TOOL
@@ -171,6 +172,9 @@ class Agent:
 
         # TODO(1.1.a): Add machinery to maintain agent state as it takes actions
         # and observes the results.
+        # Domain-independent action/observation history. Subclasses only need
+        # to execute calls and return linked tool messages.
+        self.message_history: list[dict[str, Any]] = []
 
     def load_skills(self, skills_path: Path) -> dict[str, dict[str, str]]:
         """Load the skill folders exposed to this agent."""
@@ -183,7 +187,75 @@ class Agent:
         # ``content`` of the skill file for ``invoke_skill``. Reject duplicate
         # names and malformed or missing frontmatter with a clear
         # ``ValueError``.
-        raise NotImplementedError
+        if not skills_path.exists():
+            raise ValueError(f"Skills path does not exist: {skills_path}")
+        if not skills_path.is_dir():
+            raise ValueError(f"Skills path is not a directory: {skills_path}")
+
+        skills: dict[str, dict[str, str]] = {}
+        for skill_dir in sorted(
+            (entry for entry in skills_path.iterdir() if entry.is_dir()),
+            key=lambda entry: entry.name,
+        ):
+            skill_file = skill_dir / "SKILL.md"
+            if not skill_file.is_file():
+                raise ValueError(f"Skill directory is missing SKILL.md: {skill_dir}")
+
+            try:
+                content = skill_file.read_text(encoding="utf-8")
+            except (OSError, UnicodeError) as exc:
+                raise ValueError(f"Could not read skill file {skill_file}: {exc}") from exc
+
+            lines = content.splitlines()
+            if not lines or lines[0].strip() != "---":
+                raise ValueError(
+                    f"Skill file must start with YAML frontmatter: {skill_file}"
+                )
+            try:
+                frontmatter_end = next(
+                    index
+                    for index, line in enumerate(lines[1:], start=1)
+                    if line.strip() == "---"
+                )
+            except StopIteration as exc:
+                raise ValueError(
+                    f"Skill file has unterminated YAML frontmatter: {skill_file}"
+                ) from exc
+
+            frontmatter_text = "\n".join(lines[1:frontmatter_end])
+            try:
+                frontmatter = yaml.safe_load(frontmatter_text)
+            except yaml.YAMLError as exc:
+                raise ValueError(
+                    f"Skill file has malformed YAML frontmatter: {skill_file}: {exc}"
+                ) from exc
+            if not isinstance(frontmatter, dict):
+                raise ValueError(
+                    f"Skill frontmatter must be a mapping: {skill_file}"
+                )
+
+            name = frontmatter.get("name")
+            description = frontmatter.get("description")
+            if not isinstance(name, str) or not name.strip():
+                raise ValueError(
+                    f"Skill frontmatter needs a non-empty string name: {skill_file}"
+                )
+            if not isinstance(description, str) or not description.strip():
+                raise ValueError(
+                    f"Skill frontmatter needs a non-empty string description: "
+                    f"{skill_file}"
+                )
+
+            name = name.strip()
+            description = description.strip()
+            if name in skills:
+                raise ValueError(f"Duplicate skill name: {name}")
+            skills[name] = {
+                "metadata": f"name: {name}\ndescription: {description}",
+                "content": content,
+            }
+
+        return skills
 
     def query_language_model(self) -> dict[str, Any]:
         """Send one tool-enabled Chat Completions request and normalize it."""
@@ -237,6 +309,8 @@ class Agent:
         return response.choices[0].message.model_dump(exclude_none=True)
 
     def build_prompt(self) -> list[dict[str, Any]]:
+        """Build the opening instructions followed by complete ReAct history."""
+
         # TODO(1.1.a): Construct a sequence of messages that form the language
         # model prompt. This should include standing instructions, task
         # specification, prior interaction including observations, reasoning,
@@ -244,9 +318,12 @@ class Agent:
         # domain-agnostic and construct the prompt in a way that would apply
         # to any of the inheriting domain-specific agents.
 
-        # You want to be careful about which attributes of the class you modify
-        # here as they may also be handled by the subclasses.
-        raise NotImplementedError
+        return [
+            {"role": "system", "content": self.system_prompt},
+            {"role": "user", "content": self.task_prompt},
+            *deepcopy(self.message_history),
+        ]
+
 
     def estimate_active_prompt_tokens(self) -> int:
         """Estimate the next prompt, calibrated by the provider's latest usage."""
@@ -355,7 +432,21 @@ class Agent:
             # and handles the threshold, and tracks compaction events for
             # logging.
 
-            raise NotImplementedError
+            while not self.finished:
+                if self.steps_taken >= self.step_limit:
+                    raise StepLimitError(
+                        f"Agent exceeded its step limit of {self.step_limit}."
+                    )
+
+                assistant_message = self.query_language_model()
+                self.message_history.append(deepcopy(assistant_message))
+
+                tool_calls = assistant_message.get("tool_calls")
+                if not isinstance(tool_calls, list) or not tool_calls:
+                    continue
+
+                observations = self.execute_tool_calls(tool_calls)
+                self.message_history.extend(deepcopy(observations))
         finally:
             # This block is provided infrastructure. Do not modify it: a
             # trajectory is required even when a run fails.

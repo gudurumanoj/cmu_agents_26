@@ -10,4 +10,6 @@ data/*
 !data/README.md
 !data/.gitkeep
 
-*.png
+pngs/*
+hf*
+aie*
