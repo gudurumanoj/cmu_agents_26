@@ -107,6 +107,7 @@ class ChessAgent(Agent):
         )
 
         # TODO(Part 3): Register the play_move tool schema from tools.py.
+        self.tools.append(PLAY_MOVE_TOOL)
 
         if programmatic_tools:
             self.tools.append(RUN_PYTHON_TOOL)
@@ -177,4 +178,63 @@ class ChessAgent(Agent):
 
         # TODO(Part 3.3-4): add cases for simulate_move and run_python, with
         # linked observations and recoverable errors, just like the old tool.
-        raise NotImplementedError
+        observations: list[dict[str, str]] = []
+        move_attempted = False
+
+        for index, tool_call in enumerate(tool_calls):
+            call_id = (
+                tool_call.get("id", f"invalid_call_{index}")
+                if isinstance(tool_call, dict)
+                else f"invalid_call_{index}"
+            )
+            if not isinstance(call_id, str):
+                call_id = str(call_id)
+
+            content: str
+            try:
+                if not isinstance(tool_call, dict):
+                    raise ValueError("Tool call must be an object.")
+                function = tool_call.get("function")
+                if not isinstance(function, dict):
+                    raise ValueError("Tool call is missing a function object.")
+                name = function.get("name")
+                if not isinstance(name, str) or not name:
+                    raise ValueError("Tool call function name must be a string.")
+                arguments = function.get("arguments")
+                if not isinstance(arguments, str):
+                    raise ValueError("Tool call arguments must be a JSON string.")
+
+                if name != "play_move":
+                    raise ValueError(f"Unknown chess tool: {name}")
+                if move_attempted:
+                    raise ValueError(
+                        "Only one play_move call can be executed from a parallel "
+                        "tool-call batch because the first call changes the live game."
+                    )
+                move_attempted = True
+
+                result = _play_move(self.chess_client, arguments)
+                if result.startswith("<chess_error>"):
+                    content = result
+                else:
+                    state = json.loads(result)
+                    if not isinstance(state, dict):
+                        raise ValueError(
+                            "play_move returned a state that is not a JSON object."
+                        )
+                    self.last_state = state
+                    self.finished = bool(state.get("game_over"))
+                    content = self.format_state(state)
+            except (json.JSONDecodeError, TypeError, ValueError) as exc:
+                message = str(exc) or type(exc).__name__
+                content = f"<chess_error>{message}</chess_error>"
+
+            observations.append(
+                {
+                    "role": "tool",
+                    "tool_call_id": call_id,
+                    "content": content,
+                }
+            )
+
+        return observations

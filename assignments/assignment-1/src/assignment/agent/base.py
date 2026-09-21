@@ -32,7 +32,22 @@ DEFAULT_REASONING_EFFORT = "medium"
 # TODO(Part 2): Write instructions that make the model produce concise working
 # memory for a software agent. The prompt should preserve concrete progress,
 # failures, test results, constraints, and next steps without copying raw output.
-COMPACTION_SYSTEM_PROMPT = ""
+COMPACTION_SYSTEM_PROMPT = """You create concise factual working memory for a
+software agent. Summarize only the old trajectory prefix supplied by the user.
+The original system instructions, task, and recent trajectory are retained
+separately, so do not rewrite or continue the task.
+
+Preserve information needed to resume correctly:
+- the objective and constraints
+- relevant files, symbols, commands, and edits
+- concrete observations and command results
+- failed approaches and why they failed
+- tests run and their exact outcomes
+- unresolved blockers and the next action
+
+Prefer specific facts over narration. Do not invent results or claim work was
+completed when it was not. Remove redundant discussion and bulky raw output.
+Return only the working-memory summary."""
 
 
 class StepLimitError(Exception):
@@ -361,9 +376,38 @@ class Agent:
         # with all linked tool observations. The resulting summary should change
         # what `build_prompt` emits, and reduce the length of the prompt.
 
-        raise NotImplementedError
+        assistant_indexes = [
+            index
+            for index, message in enumerate(self.message_history)
+            if message.get("role") == "assistant"
+        ]
+        if len(assistant_indexes) <= self.compaction_keep_recent_steps:
+            raise ValueError("Not enough completed agent steps to compact.")
 
-        compaction_prompt = []
+        # Starting at an assistant message keeps that action and every linked
+        # tool observation after it together. Everything before it is the old
+        # prefix that the model may summarize.
+        recent_start = assistant_indexes[-self.compaction_keep_recent_steps]
+        old_history = deepcopy(self.message_history[:recent_start])
+        recent_history = deepcopy(self.message_history[recent_start:])
+
+        compaction_source = {
+            "original_system_message": self.system_prompt,
+            "original_task_message": self.task_prompt,
+            "old_trajectory_prefix": old_history,
+        }
+        compaction_prompt = [
+            {"role": "system", "content": COMPACTION_SYSTEM_PROMPT},
+            {
+                "role": "user",
+                "content": (
+                    "Produce working memory from the JSON below. The API limits "
+                    f"the answer to {self.compaction_max_tokens} tokens; make it "
+                    "materially shorter than the trajectory it replaces.\n\n"
+                    + json.dumps(compaction_source, ensure_ascii=False, indent=2)
+                ),
+            },
+        ]
 
         ### Do not modify this section ###
         compaction_response = self.client.chat.completions.create(
@@ -376,6 +420,22 @@ class Agent:
 
         # Use `compaction_response` to update what `build_prompt` emits, but
         # DO NOT modify the object itself. Let the method return it unchanged.
+        summary = compaction_response.choices[0].message.content
+        if not isinstance(summary, str) or not summary.strip():
+            raise ValueError("Compaction model returned an empty summary.")
+
+        self.message_history = [
+            {
+                "role": "user",
+                "content": (
+                    "<working_memory>\n"
+                    "The following is a factual summary of earlier agent steps:\n"
+                    f"{summary.strip()}\n"
+                    "</working_memory>"
+                ),
+            },
+            *recent_history,
+        ]
 
         ### Do not modify this section ###
         return compaction_prompt, compaction_response.model_dump(mode="json")
@@ -438,6 +498,7 @@ class Agent:
                         f"Agent exceeded its step limit of {self.step_limit}."
                     )
 
+                self.maybe_compact_context()
                 assistant_message = self.query_language_model()
                 self.message_history.append(deepcopy(assistant_message))
 

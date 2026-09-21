@@ -1,0 +1,1076 @@
+{
+  "generated_at": "2026-09-21T06:27:34.608043+00:00",
+  "endpoint": "/v1/responses",
+  "base_url_host": "api.openai.com",
+  "model": "gpt-5.6-luna",
+  "reasoning_effort": "xhigh",
+  "credentials_logged": false,
+  "important_note": "OpenAI reasoning items are opaque/encrypted continuation state, not exposed raw chain-of-thought.",
+  "conversations": [
+    {
+      "name": "three_turns_without_tools",
+      "state_management": "Stateless replay: every response.output item is appended to input.",
+      "turns": [
+        {
+          "request": {
+            "model": "gpt-5.6-luna",
+            "input": [
+              {
+                "role": "user",
+                "content": "Remember this fact for this conversation: the codename ORBIT corresponds to the number seven. Acknowledge in one short sentence."
+              }
+            ],
+            "reasoning": {
+              "effort": "xhigh",
+              "summary": "auto"
+            },
+            "include": [
+              "reasoning.encrypted_content"
+            ],
+            "max_output_tokens": 1024,
+            "store": false
+          },
+          "response": {
+            "id": "resp_0721a434621e38ef016ab0ce576ff087d19648a4716ee454c9",
+            "created_at": 1789972055.0,
+            "metadata": {},
+            "model": "gpt-5.6-luna",
+            "object": "response",
+            "output": [
+              {
+                "id": "msg_0721a434621e38ef016ab0ce57e5a487d1b05f90beda53eb5e",
+                "content": [
+                  {
+                    "annotations": [],
+                    "text": "Understood: ORBIT corresponds to the number seven.",
+                    "type": "output_text",
+                    "logprobs": []
+                  }
+                ],
+                "role": "assistant",
+                "status": "completed",
+                "type": "message",
+                "phase": "final_answer"
+              }
+            ],
+            "parallel_tool_calls": true,
+            "temperature": 1.0,
+            "tool_choice": "auto",
+            "tools": [],
+            "top_p": 0.98,
+            "background": false,
+            "completed_at": 1789972056.0,
+            "max_output_tokens": 1024,
+            "prompt_cache_retention": "24h",
+            "reasoning": {
+              "context": "all_turns",
+              "effort": "xhigh",
+              "mode": "standard",
+              "summary": "detailed"
+            },
+            "service_tier": "default",
+            "status": "completed",
+            "text": {
+              "format": {
+                "type": "text"
+              },
+              "verbosity": "medium"
+            },
+            "top_logprobs": 0,
+            "truncation": "disabled",
+            "usage": {
+              "input_tokens": 32,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 0
+              },
+              "output_tokens": 15,
+              "output_tokens_details": {
+                "reasoning_tokens": 0
+              },
+              "total_tokens": 47
+            },
+            "billing": {
+              "payer": "developer"
+            },
+            "frequency_penalty": 0.0,
+            "presence_penalty": 0.0,
+            "store": false,
+            "tool_usage": {
+              "image_gen": {
+                "input_tokens": 0,
+                "input_tokens_details": {
+                  "image_tokens": 0,
+                  "text_tokens": 0
+                },
+                "output_tokens": 0,
+                "output_tokens_details": {
+                  "image_tokens": 0,
+                  "text_tokens": 0
+                },
+                "total_tokens": 0
+              },
+              "web_search": {
+                "num_requests": 0
+              }
+            }
+          },
+          "output_item_types": [
+            "message"
+          ]
+        },
+        {
+          "request": {
+            "model": "gpt-5.6-luna",
+            "input": [
+              {
+                "role": "user",
+                "content": "Remember this fact for this conversation: the codename ORBIT corresponds to the number seven. Acknowledge in one short sentence."
+              },
+              {
+                "id": "msg_0721a434621e38ef016ab0ce57e5a487d1b05f90beda53eb5e",
+                "content": [
+                  {
+                    "annotations": [],
+                    "text": "Understood: ORBIT corresponds to the number seven.",
+                    "type": "output_text",
+                    "logprobs": []
+                  }
+                ],
+                "role": "assistant",
+                "status": "completed",
+                "type": "message",
+                "phase": "final_answer"
+              },
+              {
+                "role": "user",
+                "content": "What codename and number did I give you? Answer briefly."
+              }
+            ],
+            "reasoning": {
+              "effort": "xhigh",
+              "summary": "auto"
+            },
+            "include": [
+              "reasoning.encrypted_content"
+            ],
+            "max_output_tokens": 1024,
+            "store": false
+          },
+          "response": {
+            "id": "resp_0721a434621e38ef016ab0ce5892e087d18e37bed0bdb1b6c4",
+            "created_at": 1789972056.0,
+            "metadata": {},
+            "model": "gpt-5.6-luna",
+            "object": "response",
+            "output": [
+              {
+                "id": "msg_0721a434621e38ef016ab0ce590c1487d1bd7455c754498d51",
+                "content": [
+                  {
+                    "annotations": [],
+                    "text": "You gave the codename ORBIT and the number seven.",
+                    "type": "output_text",
+                    "logprobs": []
+                  }
+                ],
+                "role": "assistant",
+                "status": "completed",
+                "type": "message",
+                "phase": "final_answer"
+              }
+            ],
+            "parallel_tool_calls": true,
+            "temperature": 1.0,
+            "tool_choice": "auto",
+            "tools": [],
+            "top_p": 0.98,
+            "background": false,
+            "completed_at": 1789972057.0,
+            "max_output_tokens": 1024,
+            "prompt_cache_retention": "24h",
+            "reasoning": {
+              "context": "all_turns",
+              "effort": "xhigh",
+              "mode": "standard",
+              "summary": "detailed"
+            },
+            "service_tier": "default",
+            "status": "completed",
+            "text": {
+              "format": {
+                "type": "text"
+              },
+              "verbosity": "medium"
+            },
+            "top_logprobs": 0,
+            "truncation": "disabled",
+            "usage": {
+              "input_tokens": 66,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 0
+              },
+              "output_tokens": 16,
+              "output_tokens_details": {
+                "reasoning_tokens": 0
+              },
+              "total_tokens": 82
+            },
+            "billing": {
+              "payer": "developer"
+            },
+            "frequency_penalty": 0.0,
+            "presence_penalty": 0.0,
+            "store": false,
+            "tool_usage": {
+              "image_gen": {
+                "input_tokens": 0,
+                "input_tokens_details": {
+                  "image_tokens": 0,
+                  "text_tokens": 0
+                },
+                "output_tokens": 0,
+                "output_tokens_details": {
+                  "image_tokens": 0,
+                  "text_tokens": 0
+                },
+                "total_tokens": 0
+              },
+              "web_search": {
+                "num_requests": 0
+              }
+            }
+          },
+          "output_item_types": [
+            "message"
+          ]
+        },
+        {
+          "request": {
+            "model": "gpt-5.6-luna",
+            "input": [
+              {
+                "role": "user",
+                "content": "Remember this fact for this conversation: the codename ORBIT corresponds to the number seven. Acknowledge in one short sentence."
+              },
+              {
+                "id": "msg_0721a434621e38ef016ab0ce57e5a487d1b05f90beda53eb5e",
+                "content": [
+                  {
+                    "annotations": [],
+                    "text": "Understood: ORBIT corresponds to the number seven.",
+                    "type": "output_text",
+                    "logprobs": []
+                  }
+                ],
+                "role": "assistant",
+                "status": "completed",
+                "type": "message",
+                "phase": "final_answer"
+              },
+              {
+                "role": "user",
+                "content": "What codename and number did I give you? Answer briefly."
+              },
+              {
+                "id": "msg_0721a434621e38ef016ab0ce590c1487d1bd7455c754498d51",
+                "content": [
+                  {
+                    "annotations": [],
+                    "text": "You gave the codename ORBIT and the number seven.",
+                    "type": "output_text",
+                    "logprobs": []
+                  }
+                ],
+                "role": "assistant",
+                "status": "completed",
+                "type": "message",
+                "phase": "final_answer"
+              },
+              {
+                "role": "user",
+                "content": "State that remembered fact one final time in five words or fewer."
+              }
+            ],
+            "reasoning": {
+              "effort": "xhigh",
+              "summary": "auto"
+            },
+            "include": [
+              "reasoning.encrypted_content"
+            ],
+            "max_output_tokens": 1024,
+            "store": false
+          },
+          "response": {
+            "id": "resp_0721a434621e38ef016ab0ce59c7d487d1b6c5df8f3d730ea3",
+            "created_at": 1789972057.0,
+            "metadata": {},
+            "model": "gpt-5.6-luna",
+            "object": "response",
+            "output": [
+              {
+                "id": "rs_0721a434621e38ef016ab0ce5a39d087d19e55fc49d7262ad5",
+                "summary": [
+                  {
+                    "text": "**Summarizing in few words**\n\nI need to provide an answer in five words or fewer. It looks like \"ORBIT corresponds to number seven\" is my key phrase. I've identified that \"Count ORBIT1 corresponds to number seven\" is the essence of my message. So, to keep it concise, I'll focus on delivering this information clearly and effectively while ensuring it's under five words. Good, let's finalize that!",
+                    "type": "summary_text"
+                  }
+                ],
+                "type": "reasoning",
+                "content": [],
+                "encrypted_content": "gAAAAABqsM5bEgPX0cIuCvCxxw2UA_DygIHVZya0F3EcA0kLjvzmWrHm4VPfdGhpd5vtF5gJhNnXTTObLMyAAAETn6pyfAccR4MdixPvWIXIvR_mtzkWFTQL9bDkPeANL9OuumatbAT3WxdT-tcguWfBE7jr8qNHtetaLyGaeSnnNTMhFOfsQFrCwwLpwCPPp4G8FODW3gLyQGw8BQKPQPVtN1rmK5gGZ_-1FJpbipjtwruAHZQEZ7SVFMx8a6k3NXaCDkem9KNCUFaKUvuYq3ibZXGEg-s1eCio2y2qYy6Dxj2GVFD3xx22A1cP8eKHbJHqazOyy7UMrDYycVhWPfDidNChuUOA9ELGlhtslt4KA8eNc8YOEvJZExuxm0lRKD93NVvFr0ldQVgm6c4c-Cy1XbPbdwg2qQcqFNQEIdtsQfgpie-QtEzO2JiF9b8sr86JXhYFvyix8g9wE3b2nj8W95gXUgwShrw0x2AVjBtHLbBtSrR2Zk_bCYLPOm9QW0qmevLzbRL8wxzfj8ZpS6SVsHs5K4GUSJydQRn0vNxNPVk3NvEfi1sHuSyZqgcwEzcRBjB-Fd7JAOP8Nbccx-P9RoQSzksXR2hV6N1YJ2Gzxg0GNiHhANLLGu2QeCKnYaJkxne3_pEhJ1ONpInfaOOWGE79Jc10o-VNnGaHvUr38HATDKRH4qLDxeN-YM-eDfHkSRDIhxuBwItfsBo86N_HRPRgKmrRoKV3w8lfOw8X_Hf5Db-0CIHIRggBsIWuEww5-xbmePcXWDQIy4qM3uAB5Nwt8cNkYiAcPOLdT9x9SL-DnRDNP8eG0uWeNiJcLq0iHXST9t53fxpzG6EfIvYsMwTOO8oRY_RE9eOCZouultaCE5iuMoKc-ArG_Kw9X95ZQR_lOX_z2mykGGt44LHp3uEqKWqwRJ4a5jAsjEz53qMb4aGMXNljshphxLSsfxTgSJ_6ffDeYlJubsZjJYb7PlbgvJMuwSkiRyzjicAtxsgqkb9AkIFR5Omk68-lLDYSSgwziajhPO4tRtJjFUjWQTXqpU4c6FLqTd7G3jfL17Wwhk2oWTThOfH8946PLOyQuQfjCcX16pVPIDVH01TUPpefwwsaYiMHbKMRJyhm1PCZ9mRJrIZUgp7pbJtv_Z3mpOn1YKFSEWi8akeqWn5LzGbW_PC7UHlVOqKHI_pTd2ru7AkEUvAd51k8wlV0_-px-Y1my_-LlukKU_VXzFP_LxDa3Kn-NHF6pLulwjqS-G-FqlWiooTYHdylwHq7VMQXIYM_49et8A9VHW_CmGV965ml0V7b_BxwB4wERkYe6vM6wP4DfCf328FeMp5vqLkxO1xy3-h0"
+              },
+              {
+                "id": "msg_0721a434621e38ef016ab0ce5b6ce087d197c864ca532e6757",
+                "content": [
+                  {
+                    "annotations": [],
+                    "text": "ORBIT corresponds to number seven.",
+                    "type": "output_text",
+                    "logprobs": []
+                  }
+                ],
+                "role": "assistant",
+                "status": "completed",
+                "type": "message",
+                "phase": "final_answer"
+              }
+            ],
+            "parallel_tool_calls": true,
+            "temperature": 1.0,
+            "tool_choice": "auto",
+            "tools": [],
+            "top_p": 0.98,
+            "background": false,
+            "completed_at": 1789972059.0,
+            "max_output_tokens": 1024,
+            "prompt_cache_retention": "24h",
+            "reasoning": {
+              "context": "all_turns",
+              "effort": "xhigh",
+              "mode": "standard",
+              "summary": "detailed"
+            },
+            "service_tier": "default",
+            "status": "completed",
+            "text": {
+              "format": {
+                "type": "text"
+              },
+              "verbosity": "medium"
+            },
+            "top_logprobs": 0,
+            "truncation": "disabled",
+            "usage": {
+              "input_tokens": 101,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 0
+              },
+              "output_tokens": 48,
+              "output_tokens_details": {
+                "reasoning_tokens": 35
+              },
+              "total_tokens": 149
+            },
+            "billing": {
+              "payer": "developer"
+            },
+            "frequency_penalty": 0.0,
+            "presence_penalty": 0.0,
+            "store": false,
+            "tool_usage": {
+              "image_gen": {
+                "input_tokens": 0,
+                "input_tokens_details": {
+                  "image_tokens": 0,
+                  "text_tokens": 0
+                },
+                "output_tokens": 0,
+                "output_tokens_details": {
+                  "image_tokens": 0,
+                  "text_tokens": 0
+                },
+                "total_tokens": 0
+              },
+              "web_search": {
+                "num_requests": 0
+              }
+            }
+          },
+          "output_item_types": [
+            "reasoning",
+            "message"
+          ]
+        }
+      ],
+      "final_history": [
+        {
+          "role": "user",
+          "content": "Remember this fact for this conversation: the codename ORBIT corresponds to the number seven. Acknowledge in one short sentence."
+        },
+        {
+          "id": "msg_0721a434621e38ef016ab0ce57e5a487d1b05f90beda53eb5e",
+          "content": [
+            {
+              "annotations": [],
+              "text": "Understood: ORBIT corresponds to the number seven.",
+              "type": "output_text",
+              "logprobs": []
+            }
+          ],
+          "role": "assistant",
+          "status": "completed",
+          "type": "message",
+          "phase": "final_answer"
+        },
+        {
+          "role": "user",
+          "content": "What codename and number did I give you? Answer briefly."
+        },
+        {
+          "id": "msg_0721a434621e38ef016ab0ce590c1487d1bd7455c754498d51",
+          "content": [
+            {
+              "annotations": [],
+              "text": "You gave the codename ORBIT and the number seven.",
+              "type": "output_text",
+              "logprobs": []
+            }
+          ],
+          "role": "assistant",
+          "status": "completed",
+          "type": "message",
+          "phase": "final_answer"
+        },
+        {
+          "role": "user",
+          "content": "State that remembered fact one final time in five words or fewer."
+        },
+        {
+          "id": "rs_0721a434621e38ef016ab0ce5a39d087d19e55fc49d7262ad5",
+          "summary": [
+            {
+              "text": "**Summarizing in few words**\n\nI need to provide an answer in five words or fewer. It looks like \"ORBIT corresponds to number seven\" is my key phrase. I've identified that \"Count ORBIT1 corresponds to number seven\" is the essence of my message. So, to keep it concise, I'll focus on delivering this information clearly and effectively while ensuring it's under five words. Good, let's finalize that!",
+              "type": "summary_text"
+            }
+          ],
+          "type": "reasoning",
+          "content": [],
+          "encrypted_content": "gAAAAABqsM5bEgPX0cIuCvCxxw2UA_DygIHVZya0F3EcA0kLjvzmWrHm4VPfdGhpd5vtF5gJhNnXTTObLMyAAAETn6pyfAccR4MdixPvWIXIvR_mtzkWFTQL9bDkPeANL9OuumatbAT3WxdT-tcguWfBE7jr8qNHtetaLyGaeSnnNTMhFOfsQFrCwwLpwCPPp4G8FODW3gLyQGw8BQKPQPVtN1rmK5gGZ_-1FJpbipjtwruAHZQEZ7SVFMx8a6k3NXaCDkem9KNCUFaKUvuYq3ibZXGEg-s1eCio2y2qYy6Dxj2GVFD3xx22A1cP8eKHbJHqazOyy7UMrDYycVhWPfDidNChuUOA9ELGlhtslt4KA8eNc8YOEvJZExuxm0lRKD93NVvFr0ldQVgm6c4c-Cy1XbPbdwg2qQcqFNQEIdtsQfgpie-QtEzO2JiF9b8sr86JXhYFvyix8g9wE3b2nj8W95gXUgwShrw0x2AVjBtHLbBtSrR2Zk_bCYLPOm9QW0qmevLzbRL8wxzfj8ZpS6SVsHs5K4GUSJydQRn0vNxNPVk3NvEfi1sHuSyZqgcwEzcRBjB-Fd7JAOP8Nbccx-P9RoQSzksXR2hV6N1YJ2Gzxg0GNiHhANLLGu2QeCKnYaJkxne3_pEhJ1ONpInfaOOWGE79Jc10o-VNnGaHvUr38HATDKRH4qLDxeN-YM-eDfHkSRDIhxuBwItfsBo86N_HRPRgKmrRoKV3w8lfOw8X_Hf5Db-0CIHIRggBsIWuEww5-xbmePcXWDQIy4qM3uAB5Nwt8cNkYiAcPOLdT9x9SL-DnRDNP8eG0uWeNiJcLq0iHXST9t53fxpzG6EfIvYsMwTOO8oRY_RE9eOCZouultaCE5iuMoKc-ArG_Kw9X95ZQR_lOX_z2mykGGt44LHp3uEqKWqwRJ4a5jAsjEz53qMb4aGMXNljshphxLSsfxTgSJ_6ffDeYlJubsZjJYb7PlbgvJMuwSkiRyzjicAtxsgqkb9AkIFR5Omk68-lLDYSSgwziajhPO4tRtJjFUjWQTXqpU4c6FLqTd7G3jfL17Wwhk2oWTThOfH8946PLOyQuQfjCcX16pVPIDVH01TUPpefwwsaYiMHbKMRJyhm1PCZ9mRJrIZUgp7pbJtv_Z3mpOn1YKFSEWi8akeqWn5LzGbW_PC7UHlVOqKHI_pTd2ru7AkEUvAd51k8wlV0_-px-Y1my_-LlukKU_VXzFP_LxDa3Kn-NHF6pLulwjqS-G-FqlWiooTYHdylwHq7VMQXIYM_49et8A9VHW_CmGV965ml0V7b_BxwB4wERkYe6vM6wP4DfCf328FeMp5vqLkxO1xy3-h0"
+        },
+        {
+          "id": "msg_0721a434621e38ef016ab0ce5b6ce087d197c864ca532e6757",
+          "content": [
+            {
+              "annotations": [],
+              "text": "ORBIT corresponds to number seven.",
+              "type": "output_text",
+              "logprobs": []
+            }
+          ],
+          "role": "assistant",
+          "status": "completed",
+          "type": "message",
+          "phase": "final_answer"
+        }
+      ]
+    },
+    {
+      "name": "three_requests_with_function_call",
+      "state_management": "Stateless replay: reasoning and function_call items are replayed, followed by a matching function_call_output.",
+      "turns": [
+        {
+          "request": {
+            "model": "gpt-5.6-luna",
+            "input": [
+              {
+                "role": "user",
+                "content": "Use the multiply tool exactly once to calculate 6 times 7. Do not calculate it without the tool."
+              }
+            ],
+            "reasoning": {
+              "effort": "xhigh",
+              "summary": "auto"
+            },
+            "include": [
+              "reasoning.encrypted_content"
+            ],
+            "max_output_tokens": 1024,
+            "store": false,
+            "tools": [
+              {
+                "type": "function",
+                "name": "multiply",
+                "description": "Multiply two integers and return their product.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "a": {
+                      "type": "integer"
+                    },
+                    "b": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "a",
+                    "b"
+                  ],
+                  "additionalProperties": false
+                },
+                "strict": true
+              }
+            ],
+            "tool_choice": "required"
+          },
+          "response": {
+            "id": "resp_02dd35e2cf97de13016ab0ce5c146c87d1bea80038d00c9dfd",
+            "created_at": 1789972060.0,
+            "metadata": {},
+            "model": "gpt-5.6-luna",
+            "object": "response",
+            "output": [
+              {
+                "id": "rs_02dd35e2cf97de13016ab0ce5c792887d1a7da70f070dd52ca",
+                "summary": [],
+                "type": "reasoning",
+                "content": [],
+                "encrypted_content": "gAAAAABqsM5dmgEpHwMuZzCMJvNPcLQKah8IYmKD2ydDivA-JCqjoFAkcRgvkXSmJW6fza2uXyUOel947KvCedTzWJnn8K5FwLmISPqfpIQ27MYUNfj0MbJ5jd8xuG7Z--FI7CrY9ZZyB8jeaPgQaL7uFcxgnPfwKp-rlb1Ip3m6FZKh96tEkBb6ew1syJfx22zqpABAlyvO08fHRXxrdnAgHQhugt93OhzC8sO5G5AgnxsFEO952FxR-xKr1PC1K58ElWu32eKBjCb-K5G6N-vIFYeKma1cugaw4FdtKxUxeVfKM-3pCsE8FPW9MyQCa0qfFD7w7TpjK3FVvN0ZZF5mp5EezUs7ynrq8AGEMRZrrSjKlT0jtFab3EEgB8Q7V-91NLVoceAZaB96fXdIGxfySMou-k8KIcl23Zj7xJCf7WRoxKnts0_w_OlmljeD2yeeS5JgySLH6QKF0Iha_UXWWiUiHlS9MnmTzCuF592_f1s02J_p_TEm183DWmNYbef1B3hl5O1qrXYTppqFxPqowElZhXyrEWR2YFpok0Ub0JEUQI9WooRfieIZRHEhmmEEroPtnB7lOH8ULYSLl6BIer7TLdACmO-KcupH3mPSuyMJv179lORQfj_Cwa6WWe2p6IJ8rDy8vt20_-PK9QE0UsthtjGJi4kXkQz0VXCMPYzGm5T39Yd6FR9ZZJkWLzu5AbRL3zgLh0b5hKfp6zY9xilsdA5rTZ36Kte4kGZepCI11K-n9rA8gdtZDHWoY9PAnUzXl3BWt8JKIrve22IDhHHzHDsxPsma-wv0YtrDhncyNclfy9O2cZ5JEa6xLiJ-FMbFbdyG62GS0PHNkNJFBT5T5f_wttvq0FAFzWGFqNgYLiaf_AamCw8uGbPbjQIxkYLbWM1OpCj_OzuMC7PvgDUFsFXR4xtItEMHgP9tGEMazYcv9BXVSrYvEdXE67rNnVlaLiAQIL73npToayL-jytSBYYg0ce_z2rkr_Ioxx1OmBdohkJiTGjZzFRb0jlWr2hC0vTaFKxmJH6dUEex0Y-JByjFbJv9saPwq1cWvC73PTuoWMx6kObTFzKg8HgoyqHSK8veyimnza_Wl59h_tf-1iGj9jEKSZmOfZFAKwRVYCe4LjMHpZyXjCR_n-o09pq1VupDiIkr5RVcNaF1un_IpvskgoE-5Yy3JP8Hcy95UslKxAAjUP3GCbuFyJpg9nD8GRfukqDGvMoHJWVN8b00n0obV1BNCK55jtPuwUSq9drWMtM="
+              },
+              {
+                "arguments": "{\"a\":6,\"b\":7}",
+                "call_id": "call_7BW2srfJvvOGya10EFHOAr0x",
+                "name": "multiply",
+                "type": "function_call",
+                "id": "fc_02dd35e2cf97de13016ab0ce5cec7c87d18a9cd3d562146367",
+                "status": "completed"
+              }
+            ],
+            "parallel_tool_calls": true,
+            "temperature": 1.0,
+            "tool_choice": "required",
+            "tools": [
+              {
+                "name": "multiply",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "a": {
+                      "type": "integer"
+                    },
+                    "b": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "a",
+                    "b"
+                  ],
+                  "additionalProperties": false
+                },
+                "strict": true,
+                "type": "function",
+                "description": "Multiply two integers and return their product."
+              }
+            ],
+            "top_p": 0.98,
+            "background": false,
+            "completed_at": 1789972061.0,
+            "max_output_tokens": 1024,
+            "prompt_cache_retention": "24h",
+            "reasoning": {
+              "context": "all_turns",
+              "effort": "xhigh",
+              "mode": "standard",
+              "summary": "detailed"
+            },
+            "service_tier": "default",
+            "status": "completed",
+            "text": {
+              "format": {
+                "type": "text"
+              },
+              "verbosity": "medium"
+            },
+            "top_logprobs": 0,
+            "truncation": "disabled",
+            "usage": {
+              "input_tokens": 69,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 0
+              },
+              "output_tokens": 42,
+              "output_tokens_details": {
+                "reasoning_tokens": 19
+              },
+              "total_tokens": 111
+            },
+            "billing": {
+              "payer": "developer"
+            },
+            "frequency_penalty": 0.0,
+            "presence_penalty": 0.0,
+            "store": false,
+            "tool_usage": {
+              "image_gen": {
+                "input_tokens": 0,
+                "input_tokens_details": {
+                  "image_tokens": 0,
+                  "text_tokens": 0
+                },
+                "output_tokens": 0,
+                "output_tokens_details": {
+                  "image_tokens": 0,
+                  "text_tokens": 0
+                },
+                "total_tokens": 0
+              },
+              "web_search": {
+                "num_requests": 0
+              }
+            }
+          },
+          "output_item_types": [
+            "reasoning",
+            "function_call"
+          ]
+        },
+        {
+          "request": {
+            "model": "gpt-5.6-luna",
+            "input": [
+              {
+                "role": "user",
+                "content": "Use the multiply tool exactly once to calculate 6 times 7. Do not calculate it without the tool."
+              },
+              {
+                "id": "rs_02dd35e2cf97de13016ab0ce5c792887d1a7da70f070dd52ca",
+                "summary": [],
+                "type": "reasoning",
+                "content": [],
+                "encrypted_content": "gAAAAABqsM5dmgEpHwMuZzCMJvNPcLQKah8IYmKD2ydDivA-JCqjoFAkcRgvkXSmJW6fza2uXyUOel947KvCedTzWJnn8K5FwLmISPqfpIQ27MYUNfj0MbJ5jd8xuG7Z--FI7CrY9ZZyB8jeaPgQaL7uFcxgnPfwKp-rlb1Ip3m6FZKh96tEkBb6ew1syJfx22zqpABAlyvO08fHRXxrdnAgHQhugt93OhzC8sO5G5AgnxsFEO952FxR-xKr1PC1K58ElWu32eKBjCb-K5G6N-vIFYeKma1cugaw4FdtKxUxeVfKM-3pCsE8FPW9MyQCa0qfFD7w7TpjK3FVvN0ZZF5mp5EezUs7ynrq8AGEMRZrrSjKlT0jtFab3EEgB8Q7V-91NLVoceAZaB96fXdIGxfySMou-k8KIcl23Zj7xJCf7WRoxKnts0_w_OlmljeD2yeeS5JgySLH6QKF0Iha_UXWWiUiHlS9MnmTzCuF592_f1s02J_p_TEm183DWmNYbef1B3hl5O1qrXYTppqFxPqowElZhXyrEWR2YFpok0Ub0JEUQI9WooRfieIZRHEhmmEEroPtnB7lOH8ULYSLl6BIer7TLdACmO-KcupH3mPSuyMJv179lORQfj_Cwa6WWe2p6IJ8rDy8vt20_-PK9QE0UsthtjGJi4kXkQz0VXCMPYzGm5T39Yd6FR9ZZJkWLzu5AbRL3zgLh0b5hKfp6zY9xilsdA5rTZ36Kte4kGZepCI11K-n9rA8gdtZDHWoY9PAnUzXl3BWt8JKIrve22IDhHHzHDsxPsma-wv0YtrDhncyNclfy9O2cZ5JEa6xLiJ-FMbFbdyG62GS0PHNkNJFBT5T5f_wttvq0FAFzWGFqNgYLiaf_AamCw8uGbPbjQIxkYLbWM1OpCj_OzuMC7PvgDUFsFXR4xtItEMHgP9tGEMazYcv9BXVSrYvEdXE67rNnVlaLiAQIL73npToayL-jytSBYYg0ce_z2rkr_Ioxx1OmBdohkJiTGjZzFRb0jlWr2hC0vTaFKxmJH6dUEex0Y-JByjFbJv9saPwq1cWvC73PTuoWMx6kObTFzKg8HgoyqHSK8veyimnza_Wl59h_tf-1iGj9jEKSZmOfZFAKwRVYCe4LjMHpZyXjCR_n-o09pq1VupDiIkr5RVcNaF1un_IpvskgoE-5Yy3JP8Hcy95UslKxAAjUP3GCbuFyJpg9nD8GRfukqDGvMoHJWVN8b00n0obV1BNCK55jtPuwUSq9drWMtM="
+              },
+              {
+                "arguments": "{\"a\":6,\"b\":7}",
+                "call_id": "call_7BW2srfJvvOGya10EFHOAr0x",
+                "name": "multiply",
+                "type": "function_call",
+                "id": "fc_02dd35e2cf97de13016ab0ce5cec7c87d18a9cd3d562146367",
+                "status": "completed"
+              },
+              {
+                "type": "function_call_output",
+                "call_id": "call_7BW2srfJvvOGya10EFHOAr0x",
+                "output": "{\"a\": 6, \"b\": 7, \"product\": 42}"
+              }
+            ],
+            "reasoning": {
+              "effort": "xhigh",
+              "summary": "auto"
+            },
+            "include": [
+              "reasoning.encrypted_content"
+            ],
+            "max_output_tokens": 1024,
+            "store": false,
+            "tools": [
+              {
+                "type": "function",
+                "name": "multiply",
+                "description": "Multiply two integers and return their product.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "a": {
+                      "type": "integer"
+                    },
+                    "b": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "a",
+                    "b"
+                  ],
+                  "additionalProperties": false
+                },
+                "strict": true
+              }
+            ],
+            "tool_choice": "auto"
+          },
+          "response": {
+            "id": "resp_02dd35e2cf97de13016ab0ce5d7f1c87d1acbef20e72ed1b03",
+            "created_at": 1789972061.0,
+            "metadata": {},
+            "model": "gpt-5.6-luna",
+            "object": "response",
+            "output": [
+              {
+                "id": "msg_02dd35e2cf97de13016ab0ce5de31087d1a455c4a5f74afdd6",
+                "content": [
+                  {
+                    "annotations": [],
+                    "text": "42",
+                    "type": "output_text",
+                    "logprobs": []
+                  }
+                ],
+                "role": "assistant",
+                "status": "completed",
+                "type": "message",
+                "phase": "final_answer"
+              }
+            ],
+            "parallel_tool_calls": true,
+            "temperature": 1.0,
+            "tool_choice": "auto",
+            "tools": [
+              {
+                "name": "multiply",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "a": {
+                      "type": "integer"
+                    },
+                    "b": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "a",
+                    "b"
+                  ],
+                  "additionalProperties": false
+                },
+                "strict": true,
+                "type": "function",
+                "description": "Multiply two integers and return their product."
+              }
+            ],
+            "top_p": 0.98,
+            "background": false,
+            "completed_at": 1789972061.0,
+            "max_output_tokens": 1024,
+            "prompt_cache_retention": "24h",
+            "reasoning": {
+              "context": "all_turns",
+              "effort": "xhigh",
+              "mode": "standard",
+              "summary": "detailed"
+            },
+            "service_tier": "default",
+            "status": "completed",
+            "text": {
+              "format": {
+                "type": "text"
+              },
+              "verbosity": "medium"
+            },
+            "top_logprobs": 0,
+            "truncation": "disabled",
+            "usage": {
+              "input_tokens": 139,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 0
+              },
+              "output_tokens": 5,
+              "output_tokens_details": {
+                "reasoning_tokens": 0
+              },
+              "total_tokens": 144
+            },
+            "billing": {
+              "payer": "developer"
+            },
+            "frequency_penalty": 0.0,
+            "presence_penalty": 0.0,
+            "store": false,
+            "tool_usage": {
+              "image_gen": {
+                "input_tokens": 0,
+                "input_tokens_details": {
+                  "image_tokens": 0,
+                  "text_tokens": 0
+                },
+                "output_tokens": 0,
+                "output_tokens_details": {
+                  "image_tokens": 0,
+                  "text_tokens": 0
+                },
+                "total_tokens": 0
+              },
+              "web_search": {
+                "num_requests": 0
+              }
+            }
+          },
+          "output_item_types": [
+            "message"
+          ]
+        },
+        {
+          "request": {
+            "model": "gpt-5.6-luna",
+            "input": [
+              {
+                "role": "user",
+                "content": "Use the multiply tool exactly once to calculate 6 times 7. Do not calculate it without the tool."
+              },
+              {
+                "id": "rs_02dd35e2cf97de13016ab0ce5c792887d1a7da70f070dd52ca",
+                "summary": [],
+                "type": "reasoning",
+                "content": [],
+                "encrypted_content": "gAAAAABqsM5dmgEpHwMuZzCMJvNPcLQKah8IYmKD2ydDivA-JCqjoFAkcRgvkXSmJW6fza2uXyUOel947KvCedTzWJnn8K5FwLmISPqfpIQ27MYUNfj0MbJ5jd8xuG7Z--FI7CrY9ZZyB8jeaPgQaL7uFcxgnPfwKp-rlb1Ip3m6FZKh96tEkBb6ew1syJfx22zqpABAlyvO08fHRXxrdnAgHQhugt93OhzC8sO5G5AgnxsFEO952FxR-xKr1PC1K58ElWu32eKBjCb-K5G6N-vIFYeKma1cugaw4FdtKxUxeVfKM-3pCsE8FPW9MyQCa0qfFD7w7TpjK3FVvN0ZZF5mp5EezUs7ynrq8AGEMRZrrSjKlT0jtFab3EEgB8Q7V-91NLVoceAZaB96fXdIGxfySMou-k8KIcl23Zj7xJCf7WRoxKnts0_w_OlmljeD2yeeS5JgySLH6QKF0Iha_UXWWiUiHlS9MnmTzCuF592_f1s02J_p_TEm183DWmNYbef1B3hl5O1qrXYTppqFxPqowElZhXyrEWR2YFpok0Ub0JEUQI9WooRfieIZRHEhmmEEroPtnB7lOH8ULYSLl6BIer7TLdACmO-KcupH3mPSuyMJv179lORQfj_Cwa6WWe2p6IJ8rDy8vt20_-PK9QE0UsthtjGJi4kXkQz0VXCMPYzGm5T39Yd6FR9ZZJkWLzu5AbRL3zgLh0b5hKfp6zY9xilsdA5rTZ36Kte4kGZepCI11K-n9rA8gdtZDHWoY9PAnUzXl3BWt8JKIrve22IDhHHzHDsxPsma-wv0YtrDhncyNclfy9O2cZ5JEa6xLiJ-FMbFbdyG62GS0PHNkNJFBT5T5f_wttvq0FAFzWGFqNgYLiaf_AamCw8uGbPbjQIxkYLbWM1OpCj_OzuMC7PvgDUFsFXR4xtItEMHgP9tGEMazYcv9BXVSrYvEdXE67rNnVlaLiAQIL73npToayL-jytSBYYg0ce_z2rkr_Ioxx1OmBdohkJiTGjZzFRb0jlWr2hC0vTaFKxmJH6dUEex0Y-JByjFbJv9saPwq1cWvC73PTuoWMx6kObTFzKg8HgoyqHSK8veyimnza_Wl59h_tf-1iGj9jEKSZmOfZFAKwRVYCe4LjMHpZyXjCR_n-o09pq1VupDiIkr5RVcNaF1un_IpvskgoE-5Yy3JP8Hcy95UslKxAAjUP3GCbuFyJpg9nD8GRfukqDGvMoHJWVN8b00n0obV1BNCK55jtPuwUSq9drWMtM="
+              },
+              {
+                "arguments": "{\"a\":6,\"b\":7}",
+                "call_id": "call_7BW2srfJvvOGya10EFHOAr0x",
+                "name": "multiply",
+                "type": "function_call",
+                "id": "fc_02dd35e2cf97de13016ab0ce5cec7c87d18a9cd3d562146367",
+                "status": "completed"
+              },
+              {
+                "type": "function_call_output",
+                "call_id": "call_7BW2srfJvvOGya10EFHOAr0x",
+                "output": "{\"a\": 6, \"b\": 7, \"product\": 42}"
+              },
+              {
+                "id": "msg_02dd35e2cf97de13016ab0ce5de31087d1a455c4a5f74afdd6",
+                "content": [
+                  {
+                    "annotations": [],
+                    "text": "42",
+                    "type": "output_text",
+                    "logprobs": []
+                  }
+                ],
+                "role": "assistant",
+                "status": "completed",
+                "type": "message",
+                "phase": "final_answer"
+              },
+              {
+                "role": "user",
+                "content": "In one short sentence, state the result and name the tool that provided it. Do not call the tool again."
+              }
+            ],
+            "reasoning": {
+              "effort": "xhigh",
+              "summary": "auto"
+            },
+            "include": [
+              "reasoning.encrypted_content"
+            ],
+            "max_output_tokens": 1024,
+            "store": false,
+            "tools": [
+              {
+                "type": "function",
+                "name": "multiply",
+                "description": "Multiply two integers and return their product.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "a": {
+                      "type": "integer"
+                    },
+                    "b": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "a",
+                    "b"
+                  ],
+                  "additionalProperties": false
+                },
+                "strict": true
+              }
+            ],
+            "tool_choice": "auto"
+          },
+          "response": {
+            "id": "resp_02dd35e2cf97de13016ab0ce5e700487d1b070108b8e07ab74",
+            "created_at": 1789972062.0,
+            "metadata": {},
+            "model": "gpt-5.6-luna",
+            "object": "response",
+            "output": [
+              {
+                "id": "msg_02dd35e2cf97de13016ab0ce5ec8c487d195cbb028f543ed91",
+                "content": [
+                  {
+                    "annotations": [],
+                    "text": "The result is 42, provided by the multiply tool.",
+                    "type": "output_text",
+                    "logprobs": []
+                  }
+                ],
+                "role": "assistant",
+                "status": "completed",
+                "type": "message",
+                "phase": "final_answer"
+              }
+            ],
+            "parallel_tool_calls": true,
+            "temperature": 1.0,
+            "tool_choice": "auto",
+            "tools": [
+              {
+                "name": "multiply",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "a": {
+                      "type": "integer"
+                    },
+                    "b": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "a",
+                    "b"
+                  ],
+                  "additionalProperties": false
+                },
+                "strict": true,
+                "type": "function",
+                "description": "Multiply two integers and return their product."
+              }
+            ],
+            "top_p": 0.98,
+            "background": false,
+            "completed_at": 1789972062.0,
+            "max_output_tokens": 1024,
+            "prompt_cache_retention": "24h",
+            "reasoning": {
+              "context": "all_turns",
+              "effort": "xhigh",
+              "mode": "standard",
+              "summary": "detailed"
+            },
+            "service_tier": "default",
+            "status": "completed",
+            "text": {
+              "format": {
+                "type": "text"
+              },
+              "verbosity": "medium"
+            },
+            "top_logprobs": 0,
+            "truncation": "disabled",
+            "usage": {
+              "input_tokens": 173,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 0
+              },
+              "output_tokens": 16,
+              "output_tokens_details": {
+                "reasoning_tokens": 0
+              },
+              "total_tokens": 189
+            },
+            "billing": {
+              "payer": "developer"
+            },
+            "frequency_penalty": 0.0,
+            "presence_penalty": 0.0,
+            "store": false,
+            "tool_usage": {
+              "image_gen": {
+                "input_tokens": 0,
+                "input_tokens_details": {
+                  "image_tokens": 0,
+                  "text_tokens": 0
+                },
+                "output_tokens": 0,
+                "output_tokens_details": {
+                  "image_tokens": 0,
+                  "text_tokens": 0
+                },
+                "total_tokens": 0
+              },
+              "web_search": {
+                "num_requests": 0
+              }
+            }
+          },
+          "output_item_types": [
+            "message"
+          ]
+        }
+      ],
+      "final_history": [
+        {
+          "role": "user",
+          "content": "Use the multiply tool exactly once to calculate 6 times 7. Do not calculate it without the tool."
+        },
+        {
+          "id": "rs_02dd35e2cf97de13016ab0ce5c792887d1a7da70f070dd52ca",
+          "summary": [],
+          "type": "reasoning",
+          "content": [],
+          "encrypted_content": "gAAAAABqsM5dmgEpHwMuZzCMJvNPcLQKah8IYmKD2ydDivA-JCqjoFAkcRgvkXSmJW6fza2uXyUOel947KvCedTzWJnn8K5FwLmISPqfpIQ27MYUNfj0MbJ5jd8xuG7Z--FI7CrY9ZZyB8jeaPgQaL7uFcxgnPfwKp-rlb1Ip3m6FZKh96tEkBb6ew1syJfx22zqpABAlyvO08fHRXxrdnAgHQhugt93OhzC8sO5G5AgnxsFEO952FxR-xKr1PC1K58ElWu32eKBjCb-K5G6N-vIFYeKma1cugaw4FdtKxUxeVfKM-3pCsE8FPW9MyQCa0qfFD7w7TpjK3FVvN0ZZF5mp5EezUs7ynrq8AGEMRZrrSjKlT0jtFab3EEgB8Q7V-91NLVoceAZaB96fXdIGxfySMou-k8KIcl23Zj7xJCf7WRoxKnts0_w_OlmljeD2yeeS5JgySLH6QKF0Iha_UXWWiUiHlS9MnmTzCuF592_f1s02J_p_TEm183DWmNYbef1B3hl5O1qrXYTppqFxPqowElZhXyrEWR2YFpok0Ub0JEUQI9WooRfieIZRHEhmmEEroPtnB7lOH8ULYSLl6BIer7TLdACmO-KcupH3mPSuyMJv179lORQfj_Cwa6WWe2p6IJ8rDy8vt20_-PK9QE0UsthtjGJi4kXkQz0VXCMPYzGm5T39Yd6FR9ZZJkWLzu5AbRL3zgLh0b5hKfp6zY9xilsdA5rTZ36Kte4kGZepCI11K-n9rA8gdtZDHWoY9PAnUzXl3BWt8JKIrve22IDhHHzHDsxPsma-wv0YtrDhncyNclfy9O2cZ5JEa6xLiJ-FMbFbdyG62GS0PHNkNJFBT5T5f_wttvq0FAFzWGFqNgYLiaf_AamCw8uGbPbjQIxkYLbWM1OpCj_OzuMC7PvgDUFsFXR4xtItEMHgP9tGEMazYcv9BXVSrYvEdXE67rNnVlaLiAQIL73npToayL-jytSBYYg0ce_z2rkr_Ioxx1OmBdohkJiTGjZzFRb0jlWr2hC0vTaFKxmJH6dUEex0Y-JByjFbJv9saPwq1cWvC73PTuoWMx6kObTFzKg8HgoyqHSK8veyimnza_Wl59h_tf-1iGj9jEKSZmOfZFAKwRVYCe4LjMHpZyXjCR_n-o09pq1VupDiIkr5RVcNaF1un_IpvskgoE-5Yy3JP8Hcy95UslKxAAjUP3GCbuFyJpg9nD8GRfukqDGvMoHJWVN8b00n0obV1BNCK55jtPuwUSq9drWMtM="
+        },
+        {
+          "arguments": "{\"a\":6,\"b\":7}",
+          "call_id": "call_7BW2srfJvvOGya10EFHOAr0x",
+          "name": "multiply",
+          "type": "function_call",
+          "id": "fc_02dd35e2cf97de13016ab0ce5cec7c87d18a9cd3d562146367",
+          "status": "completed"
+        },
+        {
+          "type": "function_call_output",
+          "call_id": "call_7BW2srfJvvOGya10EFHOAr0x",
+          "output": "{\"a\": 6, \"b\": 7, \"product\": 42}"
+        },
+        {
+          "id": "msg_02dd35e2cf97de13016ab0ce5de31087d1a455c4a5f74afdd6",
+          "content": [
+            {
+              "annotations": [],
+              "text": "42",
+              "type": "output_text",
+              "logprobs": []
+            }
+          ],
+          "role": "assistant",
+          "status": "completed",
+          "type": "message",
+          "phase": "final_answer"
+        },
+        {
+          "role": "user",
+          "content": "In one short sentence, state the result and name the tool that provided it. Do not call the tool again."
+        },
+        {
+          "id": "msg_02dd35e2cf97de13016ab0ce5ec8c487d195cbb028f543ed91",
+          "content": [
+            {
+              "annotations": [],
+              "text": "The result is 42, provided by the multiply tool.",
+              "type": "output_text",
+              "logprobs": []
+            }
+          ],
+          "role": "assistant",
+          "status": "completed",
+          "type": "message",
+          "phase": "final_answer"
+        }
+      ]
+    }
+  ]
+}
