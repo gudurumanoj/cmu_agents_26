@@ -110,7 +110,7 @@ class ChessAgent(Agent):
         self.tools.append(PLAY_MOVE_TOOL)
 
         if programmatic_tools:
-            self.tools.append(RUN_PYTHON_TOOL)
+            self.tools.extend([SIMULATE_MOVE_TOOL, RUN_PYTHON_TOOL])
 
         # run_python always executes in the sandbox, on the port the chess
         # server is listening on there.
@@ -162,7 +162,7 @@ class ChessAgent(Agent):
     def execute_tool_calls(
         self, tool_calls: list[dict[str, Any]]
     ) -> list[dict[str, str]]:
-        """Execute model-generated ``play_move`` calls against the chess API."""
+        """Execute registered chess, Python, and skill tools."""
 
         # TODO(Part 3.1):
         # 1. Dispatch on the function name, and ignore a tool this agent did
@@ -179,7 +179,7 @@ class ChessAgent(Agent):
         # TODO(Part 3.3-4): add cases for simulate_move and run_python, with
         # linked observations and recoverable errors, just like the old tool.
         observations: list[dict[str, str]] = []
-        move_attempted = False
+        live_action_attempted = False
 
         for index, tool_call in enumerate(tool_calls):
             call_id = (
@@ -204,28 +204,53 @@ class ChessAgent(Agent):
                 if not isinstance(arguments, str):
                     raise ValueError("Tool call arguments must be a JSON string.")
 
-                if name != "play_move":
-                    raise ValueError(f"Unknown chess tool: {name}")
-                if move_attempted:
-                    raise ValueError(
-                        "Only one play_move call can be executed from a parallel "
-                        "tool-call batch because the first call changes the live game."
-                    )
-                move_attempted = True
-
-                result = _play_move(self.chess_client, arguments)
-                if result.startswith("<chess_error>"):
-                    content = result
-                else:
-                    state = json.loads(result)
-                    if not isinstance(state, dict):
+                if name == "play_move":
+                    if live_action_attempted:
                         raise ValueError(
-                            "play_move returned a state that is not a JSON object."
+                            "Only one potentially state-changing tool can be executed "
+                            "from a parallel tool-call batch."
                         )
-                    self.last_state = state
-                    self.finished = bool(state.get("game_over"))
-                    content = self.format_state(state)
-            except (json.JSONDecodeError, TypeError, ValueError) as exc:
+                    live_action_attempted = True
+
+                    result = _play_move(self.chess_client, arguments)
+                    if result.startswith("<chess_error>"):
+                        content = result
+                    else:
+                        state = json.loads(result)
+                        if not isinstance(state, dict):
+                            raise ValueError(
+                                "play_move returned a state that is not a JSON object."
+                            )
+                        self.last_state = state
+                        self.finished = bool(state.get("game_over"))
+                        content = self.format_state(state)
+                elif name == "simulate_move" and SIMULATE_MOVE_TOOL in self.tools:
+                    content = _simulate_move(self.chess_client, arguments)
+                elif name == "run_python" and RUN_PYTHON_TOOL in self.tools:
+                    if live_action_attempted:
+                        raise ValueError(
+                            "Only one potentially state-changing tool can be executed "
+                            "from a parallel tool-call batch."
+                        )
+                    live_action_attempted = True
+
+                    result = _run_python(
+                        self.env,
+                        self.python_sandbox_port,
+                        arguments,
+                    )
+                    if result.startswith("<chess_error>"):
+                        content = result
+                    else:
+                        state = _game_state(self.chess_client)
+                        self.last_state = state
+                        self.finished = bool(state.get("game_over"))
+                        content = f"{result}\n\n{self.format_state(state)}"
+                elif name == "invoke_skill" and INVOKE_SKILL_TOOL in self.tools:
+                    content = _invoke_skill(self.skills, arguments)
+                else:
+                    raise ValueError(f"Unknown chess tool: {name}")
+            except Exception as exc:
                 message = str(exc) or type(exc).__name__
                 content = f"<chess_error>{message}</chess_error>"
 

@@ -161,7 +161,65 @@ PLAY_MOVE_TOOL: dict = {
 }
 
 # TODO(3.3): Define the `simulate_move` tool, like the `play_move` tool.
-SIMULATE_MOVE_TOOL: dict = {}
+SIMULATE_MOVE_TOOL: dict = {
+    "type": "function",
+    "function": {
+        "name": "simulate_move",
+        "description": (
+            "Inspect a complete six-field FEN position, or apply one hypothetical "
+            "UCI move to it without changing the live game. Returns the resulting "
+            "FEN, board squares, side to move, legal moves, and terminal status."
+        ),
+        # `move` is optional. OpenAI strict schemas require every property to
+        # be listed as required, so use normal schema validation here.
+        "strict": False,
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "fen": {
+                    "type": "string",
+                    "description": (
+                        "A complete six-field FEN describing the position to inspect."
+                    ),
+                },
+                "move": {
+                    "type": ["string", "null"],
+                    "description": (
+                        "An optional legal move in UCI notation, such as `e2e4` "
+                        "or `e7e8q`. Omit it or pass null to inspect the FEN."
+                    ),
+                },
+            },
+            "required": ["fen"],
+            "additionalProperties": False,
+        },
+    },
+}
 
-# TODO()
-RUN_PYTHON_TOOL: dict = {}
+# TODO(3.4): Define the sandboxed programmatic tool.
+RUN_PYTHON_TOOL: dict = {
+    "type": "function",
+    "function": {
+        "name": "run_python",
+        "description": (
+            "Run a Python snippet inside the chess sandbox. The snippet can call "
+            "`simulate_move(fen, move=None)` for stateless search and "
+            "`play_move(move)` once to commit the selected move to the live game."
+        ),
+        "strict": True,
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string",
+                    "description": (
+                        "Python source code to execute in the sandbox. "
+                        "simulate_move and play_move are already available."
+                    ),
+                }
+            },
+            "required": ["code"],
+            "additionalProperties": False,
+        },
+    },
+}

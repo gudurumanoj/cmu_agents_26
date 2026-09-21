@@ -141,6 +141,122 @@ In this assignment, `execute` runs only inside the Docker environment.
 `send_message` sets `Agent.finished = True`. `invoke_skill` returns a named
 skill's complete `SKILL.md`.
 
+### Tool design includes the returned observation
+
+A tool's interface is not only its function name and argument schema. The
+information it returns is equally important because that observation determines
+what work the model must do next.
+
+For example, a chess tool that returns only the updated FEN forces the model to
+derive legal moves itself. Returning the updated FEN, board state, game status,
+and `legal_moves` moves deterministic legality work into the environment and
+lets the model focus on strategy. This improves reliability because the chess
+library, rather than the language model, becomes the source of truth for legal
+actions.
+
+Tool observations should therefore expose the authoritative facts needed for
+the next decision, while avoiding irrelevant output that consumes context. Good
+tool design considers the complete action-observation contract:
+
+- the function schema determines what the model may request;
+- validation determines which requests the environment accepts;
+- the returned observation determines what the model can know afterward;
+- explicit errors determine whether the model can recover from a bad request.
+
+### Direct tools versus programmatic tools
+
+A direct tool call asks the harness to perform one named operation. For example,
+the model emits `play_move({"move": "e2e4"})`, the harness executes it, returns
+one observation, and then makes another model request. Every new decision
+normally requires another model round trip.
+
+Programmatic tool calling adds a higher-order tool such as `run_python`. The
+model supplies one Python program, and that program can use loops, branches,
+variables, and many calls to lower-level tools before it finishes. This is
+useful for deterministic work such as searching hundreds of chess positions:
+the intermediate results remain Python values instead of becoming hundreds of
+chat messages and model round trips.
+
+`programmatic` describes how calls are orchestrated, not whether they mutate
+state. In this assignment:
+
+- `simulate_move` is stateless;
+- `play_move` mutates the live game;
+- `run_python` changes the live game only if its code calls `play_move`;
+- `invoke_skill` only returns instructions.
+
+`simulate_move` is itself an ordinary function tool. It is gated by
+`--programmatic-tools` because the assignment bundles simulation and Python as
+optional advanced capabilities, preserving a `play_move`-only baseline. This is
+an experiment/configuration choice, not a technical requirement.
+
+### How multiple simulations help without invoking the opponent
+
+`simulate_move(fen, move)` reconstructs a fresh board from the supplied FEN and
+applies exactly one legal ply. It never updates the live board and never invokes
+the deterministic Black bot. The returned FEN records whose turn comes next, so
+Python can explicitly explore both sides:
+
+```python
+after_white = simulate_move(current_fen, candidate)
+scores = []
+for black_reply in after_white["legal_moves"]:
+    after_black = simulate_move(after_white["fen"], black_reply)
+    scores.append(evaluate(after_black))
+candidate_score = min(scores)
+```
+
+The script treats every legal Black reply as a possible opponent response and,
+for minimax search, scores the White candidate by its worst reply. This moves
+board reconstruction, turn handling, and move legality into `python-chess`,
+while Python performs reliable iteration and scoring. The real Black bot acts
+only after the selected White move is committed through `/api/move`.
+
+Each `simulate_move` call returns a dictionary to the running Python code with
+fields such as `fen`, `squares`, `turn`, `legal_moves`, and terminal status.
+Those dictionaries are internal variables; they do not automatically become
+the tool observation. A top-level expression also has no visible result under
+`exec`. The code must `print` information it wants returned, or call
+`play_move(best)` to create the intended live-game side effect.
+
+### How custom functions exist inside model-written Python
+
+The model-written snippet does not import ordinary library functions named
+`simulate_move` and `play_move`. Before executing the snippet,
+`sandbox_python.py` creates wrapper functions with those names. Each wrapper
+serializes its Python arguments, calls the existing chess helper through an
+HTTP client connected to the server inside Docker, and converts the returned
+JSON back into a Python dictionary.
+
+The runner injects the wrappers into the globals passed to `exec`:
+
+```python
+namespace = {
+    "__name__": "__agent__",
+    "simulate_move": simulate_move,
+    "play_move": play_move,
+}
+exec(compile(code, "<agent-python>", "exec"), namespace, namespace)
+```
+
+The complete execution path is:
+
+1. the model requests `run_python` with a source-code string;
+2. `_run_python` base64-encodes that code to avoid shell-quoting problems;
+3. `Environment.execute` starts `/opt/assignment/sandbox_python.py` inside
+   Docker;
+4. the runner creates the HTTP-backed wrappers and injects them into `exec`;
+5. simulation calls use `/api/simulate`, while a committed move uses
+   `/api/move`;
+6. the runner captures printed output, tracebacks, and exceptions into one JSON
+   object with `stdout`, `stderr`, and `error`;
+7. after a successful runner invocation, `ChessAgent` reads `/api/state` again,
+   updates `last_state` and `finished`, and appends the formatted live board.
+
+The intended strategy is therefore: simulate many hypothetical lines, select
+the best candidate in Python, call `play_move` exactly once, and then continue
+from the refreshed real board after Black's automatic reply.
+
 ## 6. Live history versus API audit logs
 
 `message_history` is the mutable source of truth for the active conversation.

@@ -143,7 +143,7 @@ class ChessSandbox(Environment):
                 if response.status == 200 and payload == {"status": "ok"}:
                     return
                 last_error = f"unexpected health response: {payload!r}"
-            except (HTTPError, URLError, TimeoutError, json.JSONDecodeError) as exc:
+            except (HTTPError, URLError, OSError, json.JSONDecodeError) as exc:
                 last_error = str(exc)
             time.sleep(0.25)
 

@@ -52,7 +52,43 @@ def _simulate_move(client: httpx.Client, arguments: str) -> str:
     # JSON arguments, arguments that are not an object, a missing or
     # non-string fen, a non-string move, a position or move the server rejects,
     # and a transport failure.
-    raise NotImplementedError
+    try:
+        parsed = json.loads(arguments)
+        if not isinstance(parsed, dict):
+            raise ValueError("simulate_move arguments must be a JSON object.")
+        extras = set(parsed) - {"fen", "move"}
+        if extras:
+            raise ValueError(
+                "Unexpected simulate_move argument(s): "
+                + ", ".join(sorted(extras))
+            )
+
+        fen = parsed.get("fen")
+        if not isinstance(fen, str) or not fen.strip():
+            raise ValueError(
+                "simulate_move requires `fen` to be a non-empty string."
+            )
+        move = parsed.get("move")
+        if move is not None and (
+            not isinstance(move, str) or not move.strip()
+        ):
+            raise ValueError(
+                "simulate_move `move` must be a non-empty UCI string or null."
+            )
+
+        payload: dict[str, str] = {"fen": fen}
+        if move is not None:
+            payload["move"] = move
+        state = _request_state(
+            client,
+            "POST",
+            "/api/simulate",
+            json=payload,
+        )
+        return json.dumps(state)
+    except Exception as exc:
+        message = str(exc) or type(exc).__name__
+        return f"<chess_error>{message}</chess_error>"
 
 
 def _play_move(client: httpx.Client, arguments: str) -> str:
@@ -116,7 +152,54 @@ def _run_python(env: Any, port: int, arguments: str) -> str:
     #
     # Return <chess_error>{message}</chess_error> if there are issues like type
     # mismatches or parsing failures.
-    raise NotImplementedError
+    try:
+        parsed = json.loads(arguments)
+        if not isinstance(parsed, dict):
+            raise ValueError("run_python arguments must be a JSON object.")
+        if set(parsed) != {"code"}:
+            raise ValueError(
+                "run_python requires exactly one argument named `code`."
+            )
+
+        code = parsed["code"]
+        if not isinstance(code, str) or not code.strip():
+            raise ValueError("run_python `code` must be a non-empty string.")
+        if (
+            isinstance(port, bool)
+            or not isinstance(port, int)
+            or not 1 <= port <= 65535
+        ):
+            raise ValueError("run_python port must be an integer from 1 to 65535.")
+        if not callable(getattr(env, "execute", None)):
+            raise TypeError("run_python requires an environment with execute().")
+
+        encoded_code = base64.b64encode(code.encode("utf-8")).decode("ascii")
+        result = env.execute(
+            [
+                "python",
+                "/opt/assignment/sandbox_python.py",
+                str(port),
+                encoded_code,
+            ],
+            shell=False,
+        )
+        if not isinstance(result, dict):
+            raise TypeError("Sandbox execute result must be an object.")
+        if result.get("returncode") != 0:
+            message = (
+                result.get("exception_info")
+                or result.get("stderr")
+                or f"Sandbox runner exited with code {result.get('returncode')}."
+            )
+            raise RuntimeError(str(message).strip())
+
+        stdout = result.get("stdout")
+        if not isinstance(stdout, str) or not stdout.strip():
+            raise RuntimeError("Sandbox runner returned no JSON output.")
+        return stdout
+    except Exception as exc:
+        message = str(exc) or type(exc).__name__
+        return f"<chess_error>{message}</chess_error>"
 
 
 def _invoke_skill(skills: dict[str, dict[str, str]], arguments: str) -> str:
@@ -124,7 +207,28 @@ def _invoke_skill(skills: dict[str, dict[str, str]], arguments: str) -> str:
     # TODO(3.5): parse the arguments and return the named skill's content.
     # Return <chess_error>{message}</chess_error> if there are issues like type
     # mismatches or parsing failures.
-    raise NotImplementedError
+    try:
+        parsed = json.loads(arguments)
+        if not isinstance(parsed, dict):
+            raise ValueError("invoke_skill arguments must be a JSON object.")
+        if set(parsed) != {"name"}:
+            raise ValueError(
+                "invoke_skill requires exactly one argument named `name`."
+            )
+
+        name = parsed["name"]
+        if not isinstance(name, str) or not name.strip():
+            raise ValueError("invoke_skill `name` must be a non-empty string.")
+        skill = skills.get(name)
+        if not isinstance(skill, dict):
+            raise ValueError(f"Unknown skill: {name}")
+        content = skill.get("content")
+        if not isinstance(content, str) or not content:
+            raise ValueError(f"Skill has no readable content: {name}")
+        return content
+    except Exception as exc:
+        message = str(exc) or type(exc).__name__
+        return f"<chess_error>{message}</chess_error>"
 
 
 def _game_state(client: httpx.Client, reset: bool = False) -> dict:
